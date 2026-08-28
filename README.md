@@ -40,24 +40,33 @@ Video + SRT ──▶ AI Analysis ──▶ SFX Timeline ──▶ FFmpeg Render
 
 ## Quick Start
 
-### 1. Generate placeholder SFX (run once)
+### 🚀 One-Command Launcher (Recommended)
+Automatically detects open ports for both backend and frontend, connects them, and opens your browser:
 ```bash
-python backend/generate_placeholders.py
+python launch.py
+```
+Or on Windows:
+```bash
+start.bat
 ```
 
-### 2. Start the backend
+---
+
+### Manual Start
+
+#### 1. Start the backend
 ```bash
 cd backend
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 3. Start the frontend
+#### 2. Start the frontend
 ```bash
 cd frontend
 npm run dev
 ```
 
-### 4. Open
+#### 3. Open
 - **App**: http://localhost:3000
 - **API docs**: http://localhost:8000/docs
 
