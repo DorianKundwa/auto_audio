@@ -180,6 +180,9 @@ body {
 .sfx-chip.glitch     { background: rgba(6,182,212,0.18);  color: #22d3ee; border: 1px solid rgba(6,182,212,0.25); }
 .sfx-chip.whoosh     { background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
 .sfx-chip.transition { background: rgba(99,102,241,0.18); color: #818cf8; border: 1px solid rgba(99,102,241,0.25); }
+.sfx-chip.heartbeat  { background: rgba(244,63,94,0.18);  color: #fb7185; border: 1px solid rgba(244,63,94,0.25); }
+.sfx-chip.click      { background: rgba(234,179,8,0.18);   color: #facc15; border: 1px solid rgba(234,179,8,0.25); }
+.sfx-chip.upbeat     { background: rgba(168,85,247,0.18); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
 .sfx-chip.silence,
 .sfx-chip.drop       { background: rgba(71,85,105,0.30);  color: #94a3b8; border: 1px solid rgba(71,85,105,0.40); }
 
@@ -189,17 +192,24 @@ body {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg-card);
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   animation: slide-in 0.3s ease both;
 }
 
 .timeline-row:hover {
   background: var(--bg-card-hover);
-  border-color: rgba(255,255,255,0.12);
-  transform: translateX(2px);
+  border-color: rgba(255,255,255,0.16);
+  transform: translateX(3px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.timeline-row.active {
+  border-color: var(--accent-indigo);
+  background: rgba(99, 102, 241, 0.08);
+  box-shadow: 0 0 0 1px var(--accent-indigo);
 }
 
 @keyframes slide-in {
@@ -207,9 +217,87 @@ body {
   to   { opacity: 1; transform: translateX(0); }
 }
 
+/* ── Interactive Visual Timeline Scrubber ─────────────────────── */
+.timeline-scrubber {
+  position: relative;
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  overflow: visible;
+  cursor: pointer;
+}
+
+.timeline-scrubber-progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(99, 102, 241, 0.15);
+  border-right: 2px solid var(--accent-indigo);
+  pointer-events: none;
+  transition: width 0.1s linear;
+}
+
+.timeline-marker-pin {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  transform: translateX(-50%);
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
+  z-index: 10;
+}
+
+.timeline-marker-pin:hover {
+  transform: translateX(-50%) scaleY(1.15);
+  filter: brightness(1.4);
+  z-index: 20;
+}
+
+/* ── Preset cards ─────────────────────────────────────────────── */
+.preset-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.preset-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255,255,255,0.18);
+  transform: translateY(-2px);
+}
+
+.preset-card.selected {
+  border-color: var(--accent-indigo);
+  background: rgba(99,102,241,0.12);
+  box-shadow: 0 0 0 1px var(--accent-indigo);
+}
+
+/* ── Secondary Buttons ────────────────────────────────────────── */
+.btn-secondary {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: #e2e8f0;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.2);
+  color: #ffffff;
+}
+
 /* ── Progress bar ─────────────────────────────────────────────── */
 .progress-bar {
-  height: 3px;
+  height: 4px;
   border-radius: 99px;
   background: rgba(255,255,255,0.08);
   overflow: hidden;
@@ -224,11 +312,11 @@ body {
 
 /* ── Pulse animation ──────────────────────────────────────────── */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(99,102,241,0.4); }
-  50%       { box-shadow: 0 0 24px rgba(99,102,241,0.8), 0 0 48px rgba(99,102,241,0.3); }
+  0%, 100% { box-shadow: 0 0 12px rgba(99,102,241,0.4); }
+  50%       { box-shadow: 0 0 28px rgba(99,102,241,0.8), 0 0 54px rgba(99,102,241,0.3); }
 }
 
-.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 
 /* ── Spinner ──────────────────────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }

@@ -54,6 +54,16 @@ app.include_router(upload.router, prefix="/api", tags=["Upload"])
 app.include_router(analyze.router, prefix="/api", tags=["Analyze"])
 app.include_router(export.router, prefix="/api", tags=["Export"])
 
+# ---- Static Media Files (for browser preview) ----------------------------
+ROOT_DIR = Path(__file__).parent.parent
+assets_path = ROOT_DIR / "assets"
+uploads_path = ROOT_DIR / "uploads"
+
+if assets_path.exists():
+    app.mount("/assets", StaticFiles(directory=str(assets_path)), name="assets")
+if uploads_path.exists():
+    app.mount("/uploads", StaticFiles(directory=str(uploads_path)), name="uploads")
+
 
 @app.get("/api/health")
 async def health():
@@ -61,6 +71,28 @@ async def health():
         "status": "ok",
         "gemini_configured": bool(os.getenv("GEMINI_API_KEY")),
     }
+
+
+@app.get("/api/library/sfx")
+async def get_sfx_library():
+    """Return available SFX catalog for manual placement and preview."""
+    meta_path = ROOT_DIR / "assets" / "sfx" / "metadata.json"
+    if meta_path.exists():
+        import json
+        with open(meta_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+
+@app.get("/api/library/music")
+async def get_music_library():
+    """Return available music tracks catalog."""
+    meta_path = ROOT_DIR / "assets" / "music" / "metadata.json"
+    if meta_path.exists():
+        import json
+        with open(meta_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
 
 
 if __name__ == "__main__":
