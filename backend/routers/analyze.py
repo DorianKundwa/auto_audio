@@ -93,7 +93,7 @@ async def analyze_video(
     sfx_events = build_sfx_timeline(analyzed, settings, video_duration)
 
     # --- Step 4: Music selection ---
-    music_config = select_music(analyzed, settings)
+    music_config = select_music(analyzed, settings, video_duration)
     if music_config is None:
         # Provide a safe dummy config
         from models.schemas import MusicConfig

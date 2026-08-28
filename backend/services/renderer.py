@@ -3,7 +3,7 @@ FFmpeg Renderer — assembles the final video with background music and SFX.
 
 Filter graph strategy:
   [0:a]  original video audio (or generated silence if video has no audio)
-  [1:a]  background music (stream looped infinitely with -stream_loop -1, volume controlled)
+  [1:a]  background music (repeated sequentially until video ends and trimmed at video_duration)
   [2:a]  SFX event 0 (delayed to timestamp)
   [3:a]  SFX event 1 ...
   ...
@@ -14,6 +14,7 @@ Audio is encoded as AAC 192k.
 """
 
 import os
+import math
 import shutil
 import subprocess
 import asyncio
@@ -67,6 +68,26 @@ def _has_audio_stream(video_path: str) -> bool:
         return True
 
 
+def _get_file_duration(file_path: Path) -> float:
+    """Get audio duration in seconds."""
+    try:
+        res = subprocess.run(
+            [
+                "ffprobe",
+                "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                str(file_path),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return float(res.stdout.strip())
+    except Exception:
+        return 30.0
+
+
 async def render_video(
     job_id: str,
     video_path: str,
@@ -116,20 +137,24 @@ def _build_command(
 ) -> List[str]:
     """
     Construct the FFmpeg command with a dynamic filter_complex graph.
-    Continuous background music uses -stream_loop -1 to span arbitrary video lengths.
+    Music is added back-to-back across the timeline until the video ends, then trimmed.
     """
+    video_dur = _get_file_duration(Path(video_path))
+
     # ---- Inputs -------------------------------------------------------
     inputs: List[str] = ["-i", str(Path(video_path).resolve())]
     input_idx = 1  # 0 = video
 
     music_input_idx: Optional[int] = None
+    music_track_dur: float = 30.0
+
     if music_config and music_config.track_path:
         resolved_music = _resolve_file(music_config.track_path)
         if resolved_music:
-            # -stream_loop -1 infinitely loops the music stream seamlessly
-            inputs += ["-stream_loop", "-1", "-i", str(resolved_music)]
+            inputs += ["-i", str(resolved_music)]
             music_input_idx = input_idx
             input_idx += 1
+            music_track_dur = music_config.track_duration or _get_file_duration(resolved_music)
         else:
             print(f"[renderer] Music track missing, skipping: {music_config.track_path}")
 
@@ -159,9 +184,16 @@ def _build_command(
 
     if music_input_idx is not None and music_config:
         vol = max(0.01, min(1.0, float(music_config.volume)))
-        # Looped at demuxer level via -stream_loop -1
-        filter_parts.append(f"[{music_input_idx}:a]volume={vol}[music_loop]")
-        mix_labels.append("[music_loop]")
+        # Calculate repetitions needed to cover video duration
+        repeats = max(1, math.ceil(video_dur / max(0.1, music_track_dur)) + 1)
+        samples = int(music_track_dur * 44100)
+        filter_parts.append(
+            f"[{music_input_idx}:a]volume={vol},"
+            f"aloop=loop={repeats}:size={samples},"
+            f"atrim=0:{video_dur},"
+            f"asetpts=PTS-STARTPTS[music_track]"
+        )
+        mix_labels.append("[music_track]")
 
     for i, (idx, event) in enumerate(zip(sfx_input_indices, valid_events)):
         delay_ms = max(0, int(event.timestamp * 1000))

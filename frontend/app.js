@@ -607,14 +607,36 @@ function renderTimeline() {
     laneSfx.appendChild(clip);
   });
 
-  // 4. Render Music Lane Bed
-  const musicBed = document.createElement("div");
-  musicBed.className = "absolute inset-y-1.5 left-0 right-0 rounded-lg bg-tertiary/15 border border-tertiary/30 px-3 flex items-center justify-between text-[11px] font-bold text-tertiary";
-  musicBed.innerHTML = `
-    <span>🎵 ${state.musicConfig?.mood || "Ambient Tension Soundscape"} (Looped)</span>
-    <span class="font-timecode">${((state.musicConfig?.volume || 0.12) * 100).toFixed(0)}% Bed</span>
-  `;
-  laneMusic.appendChild(musicBed);
+  // 4. Render Sequential Music Clips
+  const musicClips = state.musicConfig?.clips || [];
+  if (musicClips.length > 0) {
+    musicClips.forEach((clip) => {
+      const left = clip.start_sec * pxPerSec;
+      const width = Math.max(25, (clip.end_sec - clip.start_sec) * pxPerSec);
+      const isCut = clip.end_sec >= state.videoDuration;
+
+      const clipElem = document.createElement("div");
+      clipElem.className = `absolute top-1.5 bottom-1.5 rounded-lg bg-tertiary/20 hover:bg-tertiary/35 border border-tertiary/40 px-2 flex items-center justify-between text-[10px] font-bold text-tertiary truncate transition-all cursor-pointer ${
+        isCut ? "border-dashed border-tertiary/80 ring-1 ring-tertiary/50" : ""
+      }`;
+      clipElem.style.left = `${left}px`;
+      clipElem.style.width = `${width}px`;
+      clipElem.innerHTML = `
+        <span class="truncate mr-1 font-label-mono">🎵 ${clip.title}</span>
+        <span class="font-timecode text-[9px] opacity-80">${clip.duration.toFixed(1)}s${isCut ? " ✂ CUT" : ""}</span>
+      `;
+      clipElem.onclick = () => seekVideo(clip.start_sec);
+      laneMusic.appendChild(clipElem);
+    });
+  } else {
+    const musicBed = document.createElement("div");
+    musicBed.className = "absolute inset-y-1.5 left-0 right-0 rounded-lg bg-tertiary/15 border border-tertiary/30 px-3 flex items-center justify-between text-[11px] font-bold text-tertiary";
+    musicBed.innerHTML = `
+      <span>🎵 ${state.musicConfig?.mood || "Ambient Tension Soundscape"}</span>
+      <span class="font-timecode">${((state.musicConfig?.volume || 0.12) * 100).toFixed(0)}% Bed</span>
+    `;
+    laneMusic.appendChild(musicBed);
+  }
 
   updatePlayheadPosition();
 }

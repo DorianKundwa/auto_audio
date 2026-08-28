@@ -43,10 +43,22 @@ class SFXEvent(BaseModel):
     text_snippet: str         # the narration line that triggered this
 
 
+class MusicClip(BaseModel):
+    id: str
+    start_sec: float
+    end_sec: float
+    duration: float
+    track_path: str
+    title: str
+    volume: float
+
+
 class MusicConfig(BaseModel):
     track_path: str
     volume: float             # 0.0 – 1.0 (e.g. 0.12)
     mood: str
+    track_duration: float = 0.0
+    clips: List[MusicClip] = []
 
 
 class TimelineResult(BaseModel):
