@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiUrl } from "./lib/api";
+import { useSoundPreview } from "@/hooks/useSoundPreview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { WaveformVisualizer } from "@/components/studio/WaveformVisualizer";
@@ -28,6 +29,10 @@ import {
   Flame,
   Search,
   Activity,
+  ArrowRight,
+  ShieldCheck,
+  Clock,
+  Cpu,
 } from "lucide-react";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -60,6 +65,7 @@ interface Preset {
   desc: string;
   musicBar: string;
   sfxBar: string;
+  previewSfx: string;
   settings: Partial<Settings>;
 }
 
@@ -71,6 +77,7 @@ const PRESETS: Preset[] = [
     desc: "Heavy booms, cinematic impacts & intense tension risers",
     musicBar: "████████░░ 85%",
     sfxBar: "█████████░ 80%",
+    previewSfx: "assets/sfx/impacts/05 Impact.wav",
     settings: {
       music_intensity: 0.85,
       sfx_intensity: 0.8,
@@ -87,6 +94,7 @@ const PRESETS: Preset[] = [
     desc: "Subtle atmospheric drones, digital glitches & dramatic silences",
     musicBar: "██████░░░░ 65%",
     sfxBar: "█████░░░░░ 50%",
+    previewSfx: "assets/sfx/glitches/04 Erased Data.wav",
     settings: {
       music_intensity: 0.65,
       sfx_intensity: 0.5,
@@ -103,6 +111,7 @@ const PRESETS: Preset[] = [
     desc: "Fast whooshes, punchy transitions & reward chimes",
     musicBar: "███████░░░ 70%",
     sfxBar: "███████░░░ 70%",
+    previewSfx: "assets/sfx/whooshes/06 Portal Hop.wav",
     settings: {
       music_intensity: 0.7,
       sfx_intensity: 0.7,
@@ -119,6 +128,7 @@ const PRESETS: Preset[] = [
     desc: "Low background score & soft organic sound effects",
     musicBar: "████░░░░░░ 35%",
     sfxBar: "███░░░░░░░ 30%",
+    previewSfx: "assets/sfx/transitions/07 Line Break.wav",
     settings: {
       music_intensity: 0.35,
       sfx_intensity: 0.3,
@@ -140,6 +150,7 @@ function formatBytes(bytes: number): string {
 
 export default function UploadPage() {
   const router = useRouter();
+  const { togglePreview } = useSoundPreview();
 
   // Media files & input mode
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -159,6 +170,7 @@ export default function UploadPage() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [backendOk, setBackendOk] = useState<boolean | null>(null);
+  const [generatingDemo, setGeneratingDemo] = useState(false);
 
   // Drag states
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -206,22 +218,20 @@ export default function UploadPage() {
     reader.readAsText(file);
   };
 
-  const updateSetting = <K extends keyof Settings>(k: K, v: Settings[K]) => {
-    setActivePreset("custom");
-    setSettings((s) => ({ ...s, [k]: v }));
-  };
-
   const handlePresetSelect = (presetId: string) => {
     setActivePreset(presetId);
     const p = PRESETS.find((x) => x.id === presetId);
     if (p) {
       setSettings((s) => ({ ...s, ...p.settings }));
+      if (p.previewSfx) {
+        togglePreview(p.previewSfx);
+      }
     }
   };
 
   const canAnalyze = !!videoFile && (scriptMode === "transcribe" || !!srtFile);
 
-  // Demo script loader
+  // Sample script loader
   const loadSampleScript = () => {
     const sampleSRT = `1
 00:00:01,000 --> 00:00:04,500
@@ -247,6 +257,72 @@ And in the end... that is why the real story remains hidden.
     const file = new File([srtBlob], "demo_narration.srt", { type: "text/plain" });
     handleSrtSelect(file);
     setScriptMode("upload");
+  };
+
+  // Quick 1-Click Demo Launcher
+  const handleQuickDemoLaunch = () => {
+    setGeneratingDemo(true);
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1280;
+      canvas.height = 720;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const stream = canvas.captureStream(30);
+      const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+
+      let frame = 0;
+      const renderInterval = setInterval(() => {
+        frame++;
+        ctx.fillStyle = "#18181B";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = "rgba(99, 102, 241, 0.15)";
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += 40) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += 40) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+
+        const pulse = Math.sin(frame * 0.15) * 25;
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 70 + pulse, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(99, 102, 241, 0.25)";
+        ctx.fill();
+        ctx.strokeStyle = "#6366f1";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 32px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("AutoAudio Studio Interactive Demo", canvas.width / 2, canvas.height / 2 - 120);
+        ctx.font = "18px monospace";
+        ctx.fillStyle = "#818cf8";
+        ctx.fillText(`Frame ${frame} • AI Sound Design Test Sequence`, canvas.width / 2, canvas.height / 2 + 130);
+      }, 1000 / 30);
+
+      recorder.start();
+      setTimeout(() => {
+        clearInterval(renderInterval);
+        recorder.stop();
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: "video/mp4" });
+          const demoVideo = new File([blob], "interactive_demo_narration.mp4", { type: "video/mp4" });
+          handleVideoSelect(demoVideo);
+          loadSampleScript();
+          setGeneratingDemo(false);
+        };
+      }, 2500);
+    } catch (e) {
+      setGeneratingDemo(false);
+      loadSampleScript();
+    }
   };
 
   async function handleAnalyze() {
@@ -313,33 +389,60 @@ And in the end... that is why the real story remains hidden.
           </div>
         </div>
 
-        <Badge
-          variant={backendOk ? "success" : backendOk === false ? "destructive" : "secondary"}
-          className="gap-2 px-3 py-1 text-xs bg-[#1E1E1E] border-[#3E3E42]"
-        >
-          <span
-            className={`w-2 h-2 rounded-full ${
-              backendOk ? "bg-emerald-400 animate-pulse" : backendOk === false ? "bg-red-400" : "bg-slate-500"
-            }`}
-          />
-          <span>{backendOk ? "AI Engine Online" : backendOk === false ? "Engine Offline" : "Connecting..."}</span>
-        </Badge>
+        <div className="flex items-center gap-3">
+          {/* Quick Demo Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleQuickDemoLaunch}
+            disabled={generatingDemo || !!videoFile}
+            className="h-8 text-xs font-semibold bg-[#1E1E1E] border-[#3E3E42] text-indigo-300 hover:text-white hover:border-indigo-500/50 transition-all cursor-pointer"
+          >
+            <Zap className="w-3.5 h-3.5 mr-1 text-amber-400 fill-amber-400" />
+            <span>{generatingDemo ? "Generating Demo..." : "⚡ Quick Demo (1-Click)"}</span>
+          </Button>
+
+          <Badge
+            variant={backendOk ? "success" : backendOk === false ? "destructive" : "secondary"}
+            className="gap-2 px-3 py-1 text-xs bg-[#1E1E1E] border-[#3E3E42]"
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                backendOk ? "bg-emerald-400 animate-pulse" : backendOk === false ? "bg-red-400" : "bg-slate-500"
+              }`}
+            />
+            <span>{backendOk ? "AI Engine Online" : backendOk === false ? "Engine Offline" : "Connecting..."}</span>
+          </Badge>
+        </div>
       </header>
 
-      {/* ── Hero Title Section ── */}
-      <section className="px-6 pt-10 pb-6 text-center max-w-3xl mx-auto space-y-3">
-        <Badge variant="default" className="gap-1.5 px-3 py-0.5 font-medium shadow-xs">
-          <Sparkles className="w-3 h-3" /> Professional Creative Audio Workstation
-        </Badge>
-        <h1
-          className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-white"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          Give your video a soundtrack.
-        </h1>
-        <p className="text-[#CCCCCC] text-sm md:text-base max-w-xl mx-auto leading-relaxed">
-          AutoAudio analyzes your narration and automatically places music, impacts, risers, transitions and atmosphere exactly where they belong.
-        </p>
+      {/* ── Modern Hero Section with Ambient Waveform Aura ── */}
+      <section className="relative px-6 pt-10 pb-6 text-center max-w-4xl mx-auto space-y-4 overflow-hidden">
+        {/* Subtle Background Glow Aura */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative space-y-3">
+          <Badge
+            variant="default"
+            className="gap-1.5 px-3 py-0.5 font-medium shadow-xs bg-indigo-500/15 border border-indigo-500/30 text-indigo-300"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Professional Creative Audio Workstation
+          </Badge>
+          <h1
+            className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-white"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            Give your video a soundtrack.
+          </h1>
+          <p className="text-[#CCCCCC] text-sm md:text-base max-w-xl mx-auto leading-relaxed">
+            AutoAudio analyzes your narration and automatically places music, impacts, risers, transitions and atmosphere exactly where they belong.
+          </p>
+
+          {/* Seeded Hero Audio Spectrum */}
+          <div className="pt-2 flex justify-center opacity-70">
+            <WaveformVisualizer seed="studio_hero_banner" bars={56} height={24} barWidth={2} gap={2} color="#6366f1" />
+          </div>
+        </div>
       </section>
 
       {/* ── Central Upload Workspace ── */}
@@ -347,14 +450,14 @@ And in the end... that is why the real story remains hidden.
         {/* Row 1: Media Input Grid */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Card 1: Video Input */}
-          <Card className="p-5 flex flex-col justify-between space-y-4 border-white/[0.08]">
+          <Card className="p-5 flex flex-col justify-between space-y-4 bg-[#2D2D30] border-[#3E3E42]">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <CardTitle className="text-sm font-bold flex items-center gap-2 text-white">
                   <Film className="w-4 h-4 text-indigo-400" />
                   <span>1. Video Source</span>
                 </CardTitle>
-                <Badge variant="secondary" className="text-[10px] font-mono">
+                <Badge variant="secondary" className="text-[10px] font-mono bg-[#1E1E1E] border-[#3E3E42]">
                   MP4, MOV, MKV, WEBM (UP TO 2GB)
                 </Badge>
               </div>
@@ -378,10 +481,10 @@ And in the end... that is why the real story remains hidden.
                 }}
                 className={`p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 min-h-[180px] ${
                   videoDrag
-                    ? "border-indigo-500 bg-indigo-500/10"
+                    ? "border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/20"
                     : videoFile
                     ? "border-indigo-500/40 bg-indigo-500/5 shadow-inner"
-                    : "border-white/10 hover:border-white/20 bg-white/[0.02]"
+                    : "border-[#3E3E42] hover:border-indigo-500/40 bg-[#252528]"
                 }`}
               >
                 {videoFile ? (
@@ -396,12 +499,12 @@ And in the end... that is why the real story remains hidden.
                           {formatBytes(videoFile.size)}
                         </Badge>
                         {videoRes && (
-                          <Badge variant="secondary" className="text-[9px] font-mono">
+                          <Badge variant="secondary" className="text-[9px] font-mono bg-[#1E1E1E]">
                             {videoRes}
                           </Badge>
                         )}
                         {videoDuration && (
-                          <Badge variant="secondary" className="text-[9px] font-mono">
+                          <Badge variant="secondary" className="text-[9px] font-mono bg-[#1E1E1E]">
                             {videoDuration.toFixed(1)}s
                           </Badge>
                         )}
@@ -415,7 +518,7 @@ And in the end... that is why the real story remains hidden.
                         setVideoDuration(null);
                         setVideoRes(null);
                       }}
-                      className="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors"
+                      className="w-8 h-8 rounded-lg hover:bg-white/10 text-[#858585] hover:text-red-400 flex items-center justify-center transition-colors"
                       title="Remove file"
                     >
                       <X className="w-4 h-4" />
@@ -427,8 +530,8 @@ And in the end... that is why the real story remains hidden.
                       <Film className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-200">Drop your video here</p>
-                      <p className="text-xs text-slate-500 mt-0.5">or click to browse files</p>
+                      <p className="text-sm font-bold text-white">Drop your video here</p>
+                      <p className="text-xs text-[#858585] mt-0.5">or click to browse files</p>
                     </div>
                   </>
                 )}
@@ -437,10 +540,10 @@ And in the end... that is why the real story remains hidden.
           </Card>
 
           {/* Card 2: Script Input with 2 Segmented Options */}
-          <Card className="p-5 flex flex-col justify-between space-y-4 border-white/[0.08]">
+          <Card className="p-5 flex flex-col justify-between space-y-4 bg-[#2D2D30] border-[#3E3E42]">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <CardTitle className="text-sm font-bold flex items-center gap-2 text-white">
                   <FileText className="w-4 h-4 text-violet-400" />
                   <span>2. Narration Script</span>
                 </CardTitle>
@@ -450,7 +553,7 @@ And in the end... that is why the real story remains hidden.
                   <button
                     type="button"
                     onClick={loadSampleScript}
-                    className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
+                    className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors cursor-pointer"
                   >
                     <Zap className="w-3 h-3 text-amber-400" /> Load Demo Script
                   </button>
@@ -458,14 +561,14 @@ And in the end... that is why the real story remains hidden.
               </div>
 
               {/* Segmented Mode Switcher */}
-              <div className="grid grid-cols-2 p-1 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+              <div className="grid grid-cols-2 p-1 rounded-xl bg-[#1E1E1E] border border-[#3E3E42]">
                 <button
                   type="button"
                   onClick={() => setScriptMode("upload")}
                   className={`py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     scriptMode === "upload"
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "text-[#858585] hover:text-[#CCCCCC]"
                   }`}
                 >
                   Upload Script (.srt / .vtt)
@@ -475,8 +578,8 @@ And in the end... that is why the real story remains hidden.
                   onClick={() => setScriptMode("transcribe")}
                   className={`py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     scriptMode === "transcribe"
-                      ? "bg-violet-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-violet-600 text-white shadow-xs"
+                      : "text-[#858585] hover:text-[#CCCCCC]"
                   }`}
                 >
                   Auto Transcribe (Whisper)
@@ -505,10 +608,10 @@ And in the end... that is why the real story remains hidden.
                     }}
                     className={`p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 min-h-[180px] ${
                       srtDrag
-                        ? "border-violet-500 bg-violet-500/10"
+                        ? "border-violet-500 bg-violet-500/10 shadow-lg shadow-violet-500/20"
                         : srtFile
                         ? "border-violet-500/40 bg-violet-500/5 shadow-inner"
-                        : "border-white/10 hover:border-white/20 bg-white/[0.02]"
+                        : "border-[#3E3E42] hover:border-violet-500/40 bg-[#252528]"
                     }`}
                   >
                     {srtFile ? (
@@ -536,7 +639,7 @@ And in the end... that is why the real story remains hidden.
                             setSrtFile(null);
                             setCaptionCount(null);
                           }}
-                          className="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors"
+                          className="w-8 h-8 rounded-lg hover:bg-white/10 text-[#858585] hover:text-red-400 flex items-center justify-center transition-colors"
                           title="Remove file"
                         >
                           <X className="w-4 h-4" />
@@ -548,8 +651,8 @@ And in the end... that is why the real story remains hidden.
                           <FileText className="w-6 h-6" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-200">Drop your subtitle file (.srt / .vtt)</p>
-                          <p className="text-xs text-slate-500 mt-0.5">Captions for AI narrative structure analysis</p>
+                          <p className="text-sm font-bold text-white">Drop your subtitle file (.srt / .vtt)</p>
+                          <p className="text-xs text-[#858585] mt-0.5">Captions for AI narrative structure analysis</p>
                         </div>
                       </>
                     )}
@@ -557,18 +660,18 @@ And in the end... that is why the real story remains hidden.
                 </>
               ) : (
                 /* Option 2: Faster-Whisper Auto Transcription */
-                <div className="p-6 rounded-2xl bg-violet-950/20 border border-violet-500/25 flex flex-col justify-center gap-3 min-h-[180px]">
+                <div className="p-6 rounded-2xl bg-[#252528] border border-violet-500/30 flex flex-col justify-center gap-3 min-h-[180px]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center text-violet-300">
                         <Mic className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-100">
+                        <p className="text-xs font-bold text-white">
                           On-Device Faster-Whisper
                         </p>
-                        <p className="text-[10px] text-slate-400 font-mono">
-                          model: medium/large-v3 • privacy guaranteed
+                        <p className="text-[10px] text-[#858585] font-mono">
+                          model: medium/large-v3 • 100% privacy guaranteed
                         </p>
                       </div>
                     </div>
@@ -577,7 +680,7 @@ And in the end... that is why the real story remains hidden.
                     </Badge>
                   </div>
 
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-[#CCCCCC] leading-relaxed">
                     AutoAudio will extract the audio channel from your video and automatically generate timestamps and text transcriptions locally.
                   </p>
 
@@ -593,10 +696,10 @@ And in the end... that is why the real story remains hidden.
         {/* Row 2: Sound Design Style Profiles */}
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#858585]">
               3. Sound Design Style Profiles
             </span>
-            <span className="text-xs text-slate-500">Auto-tunes dynamic triggers and music presence</span>
+            <span className="text-xs text-[#858585]">Click any profile to audition sample tone</span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
@@ -609,24 +712,24 @@ And in the end... that is why the real story remains hidden.
                   onClick={() => handlePresetSelect(p.id)}
                   className={`p-4 rounded-2xl border text-left transition-all cursor-pointer select-none space-y-2 ${
                     isSelected
-                      ? "bg-indigo-600/15 border-indigo-500/50 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500"
-                      : "bg-white/[0.02] border-white/[0.08] hover:bg-white/[0.05] hover:border-white/15"
+                      ? "bg-indigo-600/15 border-indigo-500/70 shadow-lg shadow-indigo-500/15 ring-1 ring-indigo-500"
+                      : "bg-[#2D2D30] border-[#3E3E42] hover:bg-[#38383C] hover:border-white/15"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold text-slate-100">{p.name}</p>
+                    <p className="text-sm font-bold text-white">{p.name}</p>
                     {isSelected && <Check className="w-4 h-4 text-indigo-400" />}
                   </div>
 
-                  <p className="text-[11px] text-slate-400 leading-snug">{p.desc}</p>
+                  <p className="text-[11px] text-[#CCCCCC] leading-snug">{p.desc}</p>
 
-                  <div className="pt-1 space-y-1 font-mono text-[10px] text-slate-400">
+                  <div className="pt-1 space-y-1 font-mono text-[10px] text-[#858585]">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Music</span>
+                      <span className="text-[#858585]">Music</span>
                       <span className="text-violet-300 font-bold">{p.musicBar}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">SFX</span>
+                      <span className="text-[#858585]">SFX</span>
                       <span className="text-indigo-300 font-bold">{p.sfxBar}</span>
                     </div>
                   </div>
@@ -646,8 +749,8 @@ And in the end... that is why the real story remains hidden.
           )}
 
           {(status === "uploading" || status === "analyzing") && (
-            <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
-              <div className="flex justify-between text-xs font-semibold text-slate-200">
+            <div className="p-5 rounded-2xl bg-[#2D2D30] border border-[#3E3E42] space-y-3 shadow-xl">
+              <div className="flex justify-between text-xs font-semibold text-white">
                 <span className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-indigo-400 animate-spin" />
                   <span>
@@ -658,7 +761,7 @@ And in the end... that is why the real story remains hidden.
                 </span>
                 <span className="font-mono text-indigo-400">{progress}%</span>
               </div>
-              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-2 rounded-full bg-[#1E1E1E] overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 transition-all duration-300"
                   style={{ width: `${progress}%` }}
@@ -672,7 +775,7 @@ And in the end... that is why the real story remains hidden.
             size="lg"
             onClick={handleAnalyze}
             disabled={!canAnalyze || status === "uploading" || status === "analyzing"}
-            className="w-full h-14 text-base font-bold shadow-2xl shadow-indigo-500/25 cursor-pointer"
+            className="w-full h-14 text-base font-bold shadow-2xl shadow-indigo-500/25 bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer transition-all"
           >
             {status === "uploading" || status === "analyzing" ? (
               <>
@@ -688,12 +791,45 @@ And in the end... that is why the real story remains hidden.
           </Button>
 
           {!canAnalyze && (
-            <p className="text-center text-xs text-slate-500">
+            <p className="text-center text-xs text-[#858585]">
               {!videoFile
-                ? "Drop a video file to begin"
+                ? "Drop a video file or click 'Quick Demo' above to begin"
                 : "Add a subtitle file (.srt) or select Auto Transcribe"}
             </p>
           )}
+        </div>
+
+        {/* Row 4: Modern Studio Feature Highlights Grid */}
+        <div className="grid md:grid-cols-3 gap-4 pt-6 border-t border-[#3E3E42]">
+          <div className="p-4 rounded-xl bg-[#252528] border border-[#3E3E42] space-y-1.5">
+            <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold">
+              <Cpu className="w-4 h-4" />
+              <span>Neural Beat & Hook Engine</span>
+            </div>
+            <p className="text-[11px] text-[#858585] leading-relaxed">
+              Detects narrative turns, reveals, and emotional climaxes with millisecond precision.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-[#252528] border border-[#3E3E42] space-y-1.5">
+            <div className="flex items-center gap-2 text-violet-400 text-xs font-bold">
+              <Clock className="w-4 h-4" />
+              <span>Frame-Accurate DAW Editing</span>
+            </div>
+            <p className="text-[11px] text-[#858585] leading-relaxed">
+              Full multi-track timeline with dynamic zoom, snapping, gain envelopes, and sound library replacement.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-[#252528] border border-[#3E3E42] space-y-1.5">
+            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+              <ShieldCheck className="w-4 h-4" />
+              <span>100% Studio Quality Audio</span>
+            </div>
+            <p className="text-[11px] text-[#858585] leading-relaxed">
+              Lossless 48kHz / 24-bit audio mixing with loudness ducking and automatic silence drops.
+            </p>
+          </div>
         </div>
       </section>
     </main>

@@ -26,6 +26,7 @@ interface StudioHeaderProps {
   onToggleMusic: (val: boolean) => void;
   onToggleSFX: (val: boolean) => void;
   onOpenLibrary: () => void;
+  onOpenShortcuts?: () => void;
   onOpenExport: () => void;
   isExporting?: boolean;
 }
@@ -40,6 +41,7 @@ export function StudioHeader({
   onToggleMusic,
   onToggleSFX,
   onOpenLibrary,
+  onOpenShortcuts,
   onOpenExport,
   isExporting = false,
 }: StudioHeaderProps) {
@@ -132,7 +134,7 @@ export function StudioHeader({
       </div>
 
       {/* Right: Studio Controls & Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Track Mute Toggles */}
         <div className="flex items-center gap-3 bg-[#1E1E1E] px-3 py-1 rounded-lg border border-[#3E3E42] text-xs">
           <label className="flex items-center gap-2 cursor-pointer text-[#CCCCCC] hover:text-white select-none">
@@ -151,6 +153,19 @@ export function StudioHeader({
             <span className="font-medium text-[11px]">SFX ({sfxCount})</span>
           </label>
         </div>
+
+        {/* Shortcuts Button */}
+        {onOpenShortcuts && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenShortcuts}
+            className="h-8 px-2 text-xs text-[#858585] hover:text-[#CCCCCC] hover:bg-white/[0.06]"
+            title="Keyboard Shortcuts (?)"
+          >
+            ⌨ <span className="hidden sm:inline ml-1 font-mono text-[10px]">[?]</span>
+          </Button>
+        )}
 
         {/* Sound Library Drawer Toggle */}
         <Button

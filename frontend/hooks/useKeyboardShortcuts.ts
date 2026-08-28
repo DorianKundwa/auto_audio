@@ -9,6 +9,10 @@ interface ShortcutHandlers {
   onToggleLibrary: () => void;
   onDeleteSelected: () => void;
   onDuplicateSelected?: () => void;
+  onToggleShortcuts?: () => void;
+  onToggleMute?: () => void;
+  onToggleFullscreen?: () => void;
+  onResetTime?: () => void;
 }
 
 export function useKeyboardShortcuts({
@@ -18,6 +22,10 @@ export function useKeyboardShortcuts({
   onToggleLibrary,
   onDeleteSelected,
   onDuplicateSelected,
+  onToggleShortcuts,
+  onToggleMute,
+  onToggleFullscreen,
+  onResetTime,
 }: ShortcutHandlers) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -48,10 +56,21 @@ export function useKeyboardShortcuts({
       } else if (e.code === "Delete" || e.code === "Backspace") {
         e.preventDefault();
         onDeleteSelected();
-      } else if (e.code === "KeyS" && (e.ctrlKey || e.metaKey)) {
-        // Prevent default save
+      } else if (e.code === "KeyD" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onDuplicateSelected?.();
+      } else if (e.key === "?" || (e.code === "Slash" && e.shiftKey)) {
+        e.preventDefault();
+        onToggleShortcuts?.();
+      } else if (e.code === "KeyM" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        onToggleMute?.();
+      } else if (e.code === "KeyF" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        onToggleFullscreen?.();
+      } else if (e.code === "Digit0") {
+        e.preventDefault();
+        onResetTime?.();
       }
     };
 
@@ -64,5 +83,9 @@ export function useKeyboardShortcuts({
     onToggleLibrary,
     onDeleteSelected,
     onDuplicateSelected,
+    onToggleShortcuts,
+    onToggleMute,
+    onToggleFullscreen,
+    onResetTime,
   ]);
 }

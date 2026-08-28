@@ -19,6 +19,7 @@ import { Timeline } from "@/components/studio/Timeline";
 import { Inspector } from "@/components/studio/Inspector";
 import { SoundLibraryDrawer, SFXLibraryItem } from "@/components/studio/SoundLibraryDrawer";
 import { ExportDialog } from "@/components/studio/ExportDialog";
+import { ShortcutsModal } from "@/components/studio/ShortcutsModal";
 import { ToastContainer, ToastItem } from "@/components/studio/Toast";
 
 interface TimelineResult {
@@ -47,6 +48,7 @@ export default function StudioPage() {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [libraryCategory, setLibraryCategory] = useState("all");
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const showToast = useCallback((message: string, type: "success" | "info" | "error" = "success") => {
@@ -171,6 +173,10 @@ export default function StudioPage() {
         showToast("Sound effect duplicated", "success");
       }
     },
+    onToggleShortcuts: () => setIsShortcutsOpen((o) => !o),
+    onToggleMute: toggleMute,
+    onToggleFullscreen: toggleFullscreen,
+    onResetTime: () => seek(0),
   });
 
   // Sound Library Insert Handler
@@ -218,12 +224,14 @@ export default function StudioPage() {
         segmentsCount={timeline?.analyzed_segments.length || 0}
         musicEnabled={musicEnabled}
         sfxEnabled={sfxEnabled}
+        isPlaying={isPlaying}
         onToggleMusic={setMusicEnabled}
         onToggleSFX={setSfxEnabled}
         onOpenLibrary={() => {
           setLibraryCategory("all");
           setIsLibraryOpen(true);
         }}
+        onOpenShortcuts={() => setIsShortcutsOpen(true)}
         onOpenExport={() => setIsExportDialogOpen(true)}
         isExporting={exportStage !== "idle" && exportStage !== "completed" && exportStage !== "error"}
       />
@@ -353,6 +361,12 @@ export default function StudioPage() {
         onStartExport={() =>
           startExport(events, musicConfig, musicEnabled, sfxEnabled)
         }
+      />
+
+      {/* ── Keyboard Shortcuts Modal ── */}
+      <ShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
       />
 
       {/* ── Toast Notifications ── */}
