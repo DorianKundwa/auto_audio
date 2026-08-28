@@ -132,6 +132,7 @@ def _build_command(
         "-c:v", "copy",
         "-c:a", "aac",
         "-b:a", "192k",
+        "-shortest",
         "-movflags", "+faststart",
         output_path,
     ]

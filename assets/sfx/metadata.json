@@ -1,19 +1,357 @@
 [
   {
-    "filename": "riser_01_real.wav",
-    "type": "riser",
-    "intensity": 0.58,
-    "duration": 21.33,
+    "filename": "glitch_01_COMCell_Tech_Button_Switch_Lock_Iphone_x5_Variatio.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.5,
+    "duration": 4.64,
     "mood": [
       "real"
     ],
     "placeholder": false,
-    "source": "01 Beating.wav"
+    "source": "COMCell_Tech Button Switch Lock Iphone x5 Variations_ASD.wav"
   },
   {
-    "filename": "riser_02_real.wav",
+    "filename": "glitch_02_ROBTVox_Fun_Monster_Droid-2_Robot_Talk_03_ASD.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.55,
+    "duration": 2.42,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "ROBTVox_Fun Monster Droid-2 Robot Talk 03_ASD.wav"
+  },
+  {
+    "filename": "glitch_03_01_Processing.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.6,
+    "duration": 1.78,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "01 Processing.wav"
+  },
+  {
+    "filename": "glitch_04_02_Dial-up.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.65,
+    "duration": 3.69,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "02 Dial-up.wav"
+  },
+  {
+    "filename": "glitch_05_04_Erased_Data.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.7,
+    "duration": 2.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "04 Erased Data.wav"
+  },
+  {
+    "filename": "glitch_06_05_Reboot_Failure.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.75,
+    "duration": 7.38,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "05 Reboot Failure.wav"
+  },
+  {
+    "filename": "glitch_07_06_Portal_Hop.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.8,
+    "duration": 2.33,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "06 Portal Hop.wav"
+  },
+  {
+    "filename": "glitch_08_07_Line_Break.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.85,
+    "duration": 3.69,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "07 Line Break.wav"
+  },
+  {
+    "filename": "glitch_09_08_Rewinding.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.9,
+    "duration": 2.33,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "08 Rewinding.wav"
+  },
+  {
+    "filename": "glitch_10_09_Data_Transfer.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 0.95,
+    "duration": 2.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "09 Data Transfer.wav"
+  },
+  {
+    "filename": "glitch_11_10_Access_Denied.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 1.0,
+    "duration": 5.54,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "10 Access Denied.wav"
+  },
+  {
+    "filename": "glitch_12_11_Access_Granted.wav",
+    "folder": "glitches",
+    "type": "glitch",
+    "intensity": 1.0,
+    "duration": 2.13,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "11 Access Granted.wav"
+  },
+  {
+    "filename": "impact_01_DSGNBram_Face_in_the_Mirror_Impact_ASD_XForce_x06.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.5,
+    "duration": 67.44,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "DSGNBram_Face in the Mirror Impact_ASD_XForce_x06.wav"
+  },
+  {
+    "filename": "impact_02_DSGNEthr_Magic_Black_Impact,_Projectile,_Creature,.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.55,
+    "duration": 4.67,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "DSGNEthr_Magic Black Impact, Projectile, Creature, Fast 04_ASD.wav"
+  },
+  {
+    "filename": "impact_03_ROCKCrsh_Magic_Earth_Impact,_Large_Projectile,_Slo.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.6,
+    "duration": 2.86,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "ROCKCrsh_Magic Earth Impact, Large Projectile, Slow 05_ASD.wav"
+  },
+  {
+    "filename": "impact_04_VEGETree_Magic_Foliage_Ent,_Living_Tree,_Footstep,.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.65,
+    "duration": 2.87,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "VEGETree_Magic Foliage Ent, Living Tree, Footstep, Fall, Large, Impact, Heavy 04"
+  },
+  {
+    "filename": "impact_05_WATRSplsh_Magic_Liquid_Impact,_Large,_Projectile,_.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.7,
+    "duration": 5.57,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "WATRSplsh_Magic Liquid Impact, Large, Projectile, Splash, Deep, Incoming 02_ASD."
+  },
+  {
+    "filename": "impact_06_05_Impact.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.75,
+    "duration": 5.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "05 Impact.wav"
+  },
+  {
+    "filename": "impact_07_09_Struck_Down.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.8,
+    "duration": 3.75,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "09 Struck Down.wav"
+  },
+  {
+    "filename": "impact_08_13_Metal_Slam.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.85,
+    "duration": 7.41,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "13 Metal Slam.wav"
+  },
+  {
+    "filename": "impact_09_14_Incoming_Crash.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.9,
+    "duration": 18.35,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "14 Incoming Crash.wav"
+  },
+  {
+    "filename": "impact_10_Cartoon_Splat.wav",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 0.95,
+    "duration": 1.01,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Cartoon Splat.wav"
+  },
+  {
+    "filename": "impact_11_Heavy_object_Hit_and_body_thud_sound_effect.mp3",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 1.0,
+    "duration": 2.93,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Heavy object Hit and body thud sound effect.mp3"
+  },
+  {
+    "filename": "impact_12_Hit_1.mp3",
+    "folder": "impacts",
+    "type": "impact",
+    "intensity": 1.0,
+    "duration": 5.86,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Hit 1.mp3"
+  },
+  {
+    "filename": "riser_01_DSGNDron_Double_Bass,_Bowed,_Drone,_Harmonic,_Low_.wav",
+    "folder": "risers",
     "type": "riser",
-    "intensity": 0.66,
+    "intensity": 0.5,
+    "duration": 65.79,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "DSGNDron_Double Bass, Bowed, Drone, Harmonic, Low Pitch, Bow Hair, Soft, Constan"
+  },
+  {
+    "filename": "riser_02_DSGNEthr_GHOSTS_Breath_Pulsating_ASD.wav",
+    "folder": "risers",
+    "type": "riser",
+    "intensity": 0.55,
+    "duration": 17.3,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "DSGNEthr_GHOSTS Breath Pulsating_ASD.wav"
+  },
+  {
+    "filename": "riser_03_DSGNEthr_GHOSTS_Swell_Riser_Vaporous_ASD.wav",
+    "folder": "risers",
+    "type": "riser",
+    "intensity": 0.6,
+    "duration": 9.44,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "DSGNEthr_GHOSTS Swell Riser Vaporous_ASD.wav"
+  },
+  {
+    "filename": "riser_04_DSGNRise_Magic_Energy_Spell,_Electricity,_Large,_C.wav",
+    "folder": "risers",
+    "type": "riser",
+    "intensity": 0.65,
+    "duration": 7.75,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "DSGNRise_Magic Energy Spell, Electricity, Large, Cast, Charge, Projectile 02_ASD"
+  },
+  {
+    "filename": "riser_05_DSGNRise_Sfx_Rise_Tension,_Transition,_Processed_B.wav",
+    "folder": "risers",
+    "type": "riser",
+    "intensity": 0.7,
+    "duration": 6.67,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "DSGNRise_Sfx Rise Tension, Transition, Processed Bell, Reverse, High 01_ASD.wav"
+  },
+  {
+    "filename": "riser_06_10_Evolve_Riser_Robo_Drums.wav",
+    "folder": "risers",
+    "type": "riser",
+    "intensity": 0.75,
     "duration": 11.04,
     "mood": [
       "real"
@@ -22,9 +360,10 @@
     "source": "10 Evolve_Riser Robo Drums.wav"
   },
   {
-    "filename": "riser_03_real.mp3",
+    "filename": "riser_07_Ascending_sound_effect.mp3",
+    "folder": "risers",
     "type": "riser",
-    "intensity": 0.74,
+    "intensity": 0.8,
     "duration": 4.44,
     "mood": [
       "real"
@@ -33,9 +372,10 @@
     "source": "Ascending sound effect.mp3"
   },
   {
-    "filename": "riser_04_real.mp3",
+    "filename": "riser_08_BUILD-UP.mp3",
+    "folder": "risers",
     "type": "riser",
-    "intensity": 0.82,
+    "intensity": 0.85,
     "duration": 1.92,
     "mood": [
       "real"
@@ -44,7 +384,8 @@
     "source": "BUILD-UP.mp3"
   },
   {
-    "filename": "riser_05_real.mp3",
+    "filename": "riser_09_ES_Riser_Suction_5_-_SFX_Producer.mp3",
+    "folder": "risers",
     "type": "riser",
     "intensity": 0.9,
     "duration": 2.93,
@@ -55,207 +396,106 @@
     "source": "ES_Riser Suction 5 - SFX Producer.mp3"
   },
   {
-    "filename": "boom_01_real.wav",
-    "type": "boom",
-    "intensity": 0.58,
-    "duration": 6.5,
+    "filename": "riser_10_Sudden_suspense_Sound_effect.mp3",
+    "folder": "risers",
+    "type": "riser",
+    "intensity": 0.95,
+    "duration": 1.99,
     "mood": [
       "real"
     ],
     "placeholder": false,
-    "source": "01 Boom.wav"
+    "source": "Sudden suspense Sound effect.mp3"
   },
   {
-    "filename": "boom_02_real.wav",
-    "type": "boom",
-    "intensity": 0.66,
-    "duration": 10.32,
+    "filename": "riser_11_Upset_Pulses.wav",
+    "folder": "risers",
+    "type": "riser",
+    "intensity": 1.0,
+    "duration": 12.54,
     "mood": [
       "real"
     ],
     "placeholder": false,
-    "source": "01 Evolve_Brassy Swell.wav"
+    "source": "Upset Pulses.wav"
   },
   {
-    "filename": "boom_03_real.wav",
-    "type": "boom",
-    "intensity": 0.74,
-    "duration": 5.0,
+    "filename": "riser_12_woosh-building-109596.mp3",
+    "folder": "risers",
+    "type": "riser",
+    "intensity": 1.0,
+    "duration": 2.59,
     "mood": [
       "real"
     ],
     "placeholder": false,
-    "source": "02 Deep.wav"
+    "source": "woosh-building-109596.mp3"
   },
   {
-    "filename": "boom_04_real.wav",
-    "type": "boom",
-    "intensity": 0.82,
-    "duration": 13.33,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "02 Evolve_Brassy Drop.2.wav"
-  },
-  {
-    "filename": "boom_05_real.wav",
-    "type": "boom",
-    "intensity": 0.9,
-    "duration": 8.0,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "03 Evolve_Boom Brass D.wav"
-  },
-  {
-    "filename": "glitch_01_real.wav",
-    "type": "glitch",
-    "intensity": 0.58,
-    "duration": 1.78,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "01 Processing.wav"
-  },
-  {
-    "filename": "glitch_02_real.wav",
-    "type": "glitch",
-    "intensity": 0.66,
-    "duration": 3.69,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "02 Dial-up.wav"
-  },
-  {
-    "filename": "glitch_03_real.wav",
-    "type": "glitch",
-    "intensity": 0.74,
-    "duration": 2.0,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "04 Erased Data.wav"
-  },
-  {
-    "filename": "glitch_04_real.wav",
-    "type": "glitch",
-    "intensity": 0.82,
-    "duration": 7.38,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "05 Reboot Failure.wav"
-  },
-  {
-    "filename": "glitch_05_real.wav",
-    "type": "glitch",
-    "intensity": 0.9,
-    "duration": 2.33,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "06 Portal Hop.wav"
-  },
-  {
-    "filename": "impact_01_real.wav",
-    "type": "impact",
-    "intensity": 0.58,
-    "duration": 5.0,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "05 Impact.wav"
-  },
-  {
-    "filename": "impact_02_real.wav",
-    "type": "impact",
-    "intensity": 0.66,
-    "duration": 6.0,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "07 Subsonic A.wav"
-  },
-  {
-    "filename": "impact_03_real.wav",
-    "type": "impact",
-    "intensity": 0.74,
-    "duration": 6.5,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "08 Subsonic B.wav.wav"
-  },
-  {
-    "filename": "impact_04_real.wav",
-    "type": "impact",
-    "intensity": 0.82,
-    "duration": 3.75,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "09 Struck Down.wav"
-  },
-  {
-    "filename": "impact_05_real.wav",
-    "type": "impact",
-    "intensity": 0.9,
-    "duration": 11.65,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "10 Dark Drop.wav"
-  },
-  {
-    "filename": "transition_01_real.wav",
-    "type": "transition",
-    "intensity": 0.58,
-    "duration": 1.0,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "29 Swing A.wav"
-  },
-  {
-    "filename": "transition_02_real.mp3",
-    "type": "transition",
-    "intensity": 0.66,
-    "duration": 2.76,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "Fast Forward Sound Effect(MP3_160K).mp3"
-  },
-  {
-    "filename": "transition_03_real.wav",
-    "type": "transition",
-    "intensity": 0.74,
-    "duration": 21.71,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "projector-spinning-1444.wav"
-  },
-  {
-    "filename": "whoosh_01_real.mp3",
+    "filename": "whoosh_01_FIREWhsh_Magic_Fire_Whoosh,_Small_Fireball,_Close_.wav",
+    "folder": "whooshes",
     "type": "whoosh",
-    "intensity": 0.58,
+    "intensity": 0.5,
+    "duration": 1.63,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "FIREWhsh_Magic Fire Whoosh, Small Fireball, Close To Far, Tail, Short 02_ASD.wav"
+  },
+  {
+    "filename": "whoosh_02_FOLYMisc_Rustle_Studio_Performed_Whoosh_Thorny_Bra.wav",
+    "folder": "whooshes",
+    "type": "whoosh",
+    "intensity": 0.55,
+    "duration": 18.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "FOLYMisc_Rustle Studio Performed Whoosh Thorny Branches X18_ASD.wav"
+  },
+  {
+    "filename": "whoosh_03_WHSH_Magic_Air_Whoosh,_Twirl,_Wind_Gust,_Tremolo_0.wav",
+    "folder": "whooshes",
+    "type": "whoosh",
+    "intensity": 0.6,
+    "duration": 2.99,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "WHSH_Magic Air Whoosh, Twirl, Wind Gust, Tremolo 03_ASD.wav"
+  },
+  {
+    "filename": "whoosh_04_arrow_sounds.mp3",
+    "folder": "whooshes",
+    "type": "whoosh",
+    "intensity": 0.65,
+    "duration": 2.43,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "arrow sounds.mp3"
+  },
+  {
+    "filename": "whoosh_05_clean-fast-swooshaiff-14784.mp3",
+    "folder": "whooshes",
+    "type": "whoosh",
+    "intensity": 0.7,
+    "duration": 0.98,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "clean-fast-swooshaiff-14784.mp3"
+  },
+  {
+    "filename": "whoosh_06_ES_Jump_Swish_-_SFX_Producer.mp3",
+    "folder": "whooshes",
+    "type": "whoosh",
+    "intensity": 0.75,
     "duration": 1.2,
     "mood": [
       "real"
@@ -264,9 +504,10 @@
     "source": "ES_Jump Swish - SFX Producer.mp3"
   },
   {
-    "filename": "whoosh_02_real.mp3",
+    "filename": "whoosh_07_Fast_Whoosh_Sound_Effect.mp3",
+    "folder": "whooshes",
     "type": "whoosh",
-    "intensity": 0.66,
+    "intensity": 0.8,
     "duration": 1.91,
     "mood": [
       "real"
@@ -275,20 +516,22 @@
     "source": "Fast Whoosh Sound Effect.mp3"
   },
   {
-    "filename": "whoosh_03_real.mp3",
+    "filename": "whoosh_08_fast-whoosh-118248.mp3",
+    "folder": "whooshes",
     "type": "whoosh",
-    "intensity": 0.74,
-    "duration": 0.89,
+    "intensity": 0.85,
+    "duration": 1.2,
     "mood": [
       "real"
     ],
     "placeholder": false,
-    "source": "Lens flare transition sound effect.mp3"
+    "source": "fast-whoosh-118248.mp3"
   },
   {
-    "filename": "whoosh_04_real.mp3",
+    "filename": "whoosh_09_Long_whoosh_sound_effect.mp3",
+    "folder": "whooshes",
     "type": "whoosh",
-    "intensity": 0.82,
+    "intensity": 0.9,
     "duration": 11.02,
     "mood": [
       "real"
@@ -297,20 +540,202 @@
     "source": "Long whoosh sound effect.mp3"
   },
   {
-    "filename": "whoosh_05_real.mp3",
+    "filename": "whoosh_10_mixkit-arrow-whoosh-1491.wav",
+    "folder": "whooshes",
     "type": "whoosh",
-    "intensity": 0.9,
-    "duration": 2.09,
+    "intensity": 0.95,
+    "duration": 1.1,
     "mood": [
       "real"
     ],
     "placeholder": false,
-    "source": "Rake Swing Whoosh Close.mp3"
+    "source": "mixkit-arrow-whoosh-1491.wav"
   },
   {
-    "filename": "heartbeat_01_real.mp3",
+    "filename": "whoosh_11_mixkit-cinematic-transition-wind-swoosh-1468.wav",
+    "folder": "whooshes",
+    "type": "whoosh",
+    "intensity": 1.0,
+    "duration": 1.32,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "mixkit-cinematic-transition-wind-swoosh-1468.wav"
+  },
+  {
+    "filename": "whoosh_12_mixkit-cinematic-wind-swoosh-1471.wav",
+    "folder": "whooshes",
+    "type": "whoosh",
+    "intensity": 1.0,
+    "duration": 1.45,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "mixkit-cinematic-wind-swoosh-1471.wav"
+  },
+  {
+    "filename": "transition_01_MAGShim_Magic_Generic_Aura,_Pad,_Constant_ASD.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.5,
+    "duration": 24.73,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "MAGShim_Magic Generic Aura, Pad, Constant_ASD.wav"
+  },
+  {
+    "filename": "transition_02_MAGShim_Magic_Generic_Building_Block,_Aura,_Glyph,.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.55,
+    "duration": 3.74,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "MAGShim_Magic Generic Building Block, Aura, Glyph, Activation, Shimmer, Metal Ri"
+  },
+  {
+    "filename": "transition_03_MAGShim_Magic_Generic_Building_Block,_Processed_Be.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.6,
+    "duration": 4.44,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "MAGShim_Magic Generic Building Block, Processed Bell, Low, Pitch Slide Up & Down"
+  },
+  {
+    "filename": "transition_04_MAGShim_Magic_White_Fairy_Dust,_Chime,_Shimmer,_Cl.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.65,
+    "duration": 5.06,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "MAGShim_Magic White Fairy Dust, Chime, Shimmer, Cliche, Short, Appear 05_ASD.wav"
+  },
+  {
+    "filename": "transition_05_MAGSpel_Magic_Cartoon_Spell,_Teleport,_Transition,.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.7,
+    "duration": 2.35,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "MAGSpel_Magic Cartoon Spell, Teleport, Transition, Shinny, Short, Composite 01_A"
+  },
+  {
+    "filename": "transition_06_WHSH_Sfx_Transition_Flashback,_Remembrance,_Deep_0.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.75,
+    "duration": 3.05,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "WHSH_Sfx Transition Flashback, Remembrance, Deep 02_ASD.wav"
+  },
+  {
+    "filename": "transition_07_-camera-shutter.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.8,
+    "duration": 0.63,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "-camera-shutter.wav"
+  },
+  {
+    "filename": "transition_08_15_Fast_Forward.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.85,
+    "duration": 2.22,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "15 Fast Forward.wav"
+  },
+  {
+    "filename": "transition_09_29_Swing_A.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.9,
+    "duration": 1.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "29 Swing A.wav"
+  },
+  {
+    "filename": "transition_10_camera_shot_flash_2.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 0.95,
+    "duration": 1.05,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "camera shot flash 2.wav"
+  },
+  {
+    "filename": "transition_11_camera_shot_flash_4.wav",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 1.0,
+    "duration": 0.79,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "camera shot flash 4.wav"
+  },
+  {
+    "filename": "transition_12_camera_shutter_2.mp3",
+    "folder": "transitions",
+    "type": "transition",
+    "intensity": 1.0,
+    "duration": 0.63,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "camera shutter 2.mp3"
+  },
+  {
+    "filename": "heartbeat_01_01_Beating.wav",
+    "folder": "heartbeats",
     "type": "heartbeat",
-    "intensity": 0.58,
+    "intensity": 0.5,
+    "duration": 21.33,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "01 Beating.wav"
+  },
+  {
+    "filename": "heartbeat_02_Clock_Tick.mp3",
+    "folder": "heartbeats",
+    "type": "heartbeat",
+    "intensity": 0.55,
     "duration": 60.4,
     "mood": [
       "real"
@@ -319,31 +744,10 @@
     "source": "Clock Tick.mp3"
   },
   {
-    "filename": "heartbeat_02_real.mp3",
+    "filename": "heartbeat_03_Clock_ticking_fast.mp3",
+    "folder": "heartbeats",
     "type": "heartbeat",
-    "intensity": 0.66,
-    "duration": 8.14,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "Clock Ticking Sound Effect(MP3_160K).mp3"
-  },
-  {
-    "filename": "heartbeat_03_real.mp3",
-    "type": "heartbeat",
-    "intensity": 0.74,
-    "duration": 8.16,
-    "mood": [
-      "real"
-    ],
-    "placeholder": false,
-    "source": "Clock Ticking Sound Effect.mp3"
-  },
-  {
-    "filename": "heartbeat_04_real.mp3",
-    "type": "heartbeat",
-    "intensity": 0.82,
+    "intensity": 0.6,
     "duration": 13.3,
     "mood": [
       "real"
@@ -352,14 +756,483 @@
     "source": "Clock ticking fast.mp3"
   },
   {
-    "filename": "silence_01.wav",
-    "type": "silence",
-    "intensity": 0.05,
-    "duration": 1.5,
+    "filename": "heartbeat_04_Clock_Ticking_Sound_Effect(MP3_160K).mp3",
+    "folder": "heartbeats",
+    "type": "heartbeat",
+    "intensity": 0.65,
+    "duration": 8.14,
     "mood": [
-      "drop",
-      "silence"
+      "real"
     ],
-    "placeholder": true
+    "placeholder": false,
+    "source": "Clock Ticking Sound Effect(MP3_160K).mp3"
+  },
+  {
+    "filename": "heartbeat_05_Clock_Ticking_Sound_Effect.mp3",
+    "folder": "heartbeats",
+    "type": "heartbeat",
+    "intensity": 0.7,
+    "duration": 8.16,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Clock Ticking Sound Effect.mp3"
+  },
+  {
+    "filename": "boom_01_01_Boom.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.5,
+    "duration": 6.5,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "01 Boom.wav"
+  },
+  {
+    "filename": "boom_02_01_Evolve_Brassy_Swell.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.55,
+    "duration": 10.32,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "01 Evolve_Brassy Swell.wav"
+  },
+  {
+    "filename": "boom_03_02_Deep.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.6,
+    "duration": 5.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "02 Deep.wav"
+  },
+  {
+    "filename": "boom_04_02_Evolve_Brassy_Drop.2.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.65,
+    "duration": 13.33,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "02 Evolve_Brassy Drop.2.wav"
+  },
+  {
+    "filename": "boom_05_03_Evolve_Boom_Brass_D.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.7,
+    "duration": 8.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "03 Evolve_Boom Brass D.wav"
+  },
+  {
+    "filename": "boom_06_03_Grand_Hit_A.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.75,
+    "duration": 6.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "03 Grand Hit A.wav"
+  },
+  {
+    "filename": "boom_07_04_Evolve_Boom_Feedback_E.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.8,
+    "duration": 9.5,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "04 Evolve_Boom Feedback E.wav"
+  },
+  {
+    "filename": "boom_08_04_Grand_Hit_B.wav.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.85,
+    "duration": 6.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "04 Grand Hit B.wav.wav"
+  },
+  {
+    "filename": "boom_09_05_Evolve_Boom_Shot.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.9,
+    "duration": 6.5,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "05 Evolve_Boom Shot.wav"
+  },
+  {
+    "filename": "boom_10_06_Evolve_Boom_Hint_of_Metal.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 0.95,
+    "duration": 6.5,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "06 Evolve_Boom Hint of Metal.wav"
+  },
+  {
+    "filename": "boom_11_07_Subsonic_A.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 1.0,
+    "duration": 6.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "07 Subsonic A.wav"
+  },
+  {
+    "filename": "boom_12_08_Subsonic_B.wav.wav",
+    "folder": "booms",
+    "type": "boom",
+    "intensity": 1.0,
+    "duration": 6.5,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "08 Subsonic B.wav.wav"
+  },
+  {
+    "filename": "silence_01_10_Dark_Drop.wav",
+    "folder": "silence",
+    "type": "silence",
+    "intensity": 0.5,
+    "duration": 11.65,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "10 Dark Drop.wav"
+  },
+  {
+    "filename": "silence_02_Drop_Disto_Sub_1.wav",
+    "folder": "silence",
+    "type": "silence",
+    "intensity": 0.55,
+    "duration": 5.75,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Drop Disto Sub 1.wav"
+  },
+  {
+    "filename": "click_01_Animal_Crossing_Menu.mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.5,
+    "duration": 12.2,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Animal Crossing Menu.mp3"
+  },
+  {
+    "filename": "click_02_Bloop_Cartoon_Sound_Effect_(MP3_160K)_(1).mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.55,
+    "duration": 3.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Bloop Cartoon Sound Effect (MP3_160K) (1).mp3"
+  },
+  {
+    "filename": "click_03_Click_-_Sound_Effect_(HD).mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.6,
+    "duration": 0.94,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Click - Sound Effect (HD).mp3"
+  },
+  {
+    "filename": "click_04_click_sound_by_90_Creators.mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.65,
+    "duration": 1.57,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "click sound by 90 Creators.mp3"
+  },
+  {
+    "filename": "click_05_Click.wav",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.7,
+    "duration": 1.94,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Click.wav"
+  },
+  {
+    "filename": "click_06_crumpled_paper_sound_fx.mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.75,
+    "duration": 2.32,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "crumpled paper sound fx.mp3"
+  },
+  {
+    "filename": "click_07_ES_Suction_Pop_5_-_SFX_Producer.mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.8,
+    "duration": 0.65,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "ES_Suction Pop 5 - SFX Producer.mp3"
+  },
+  {
+    "filename": "click_08_futuristic_metal_keyboard.wav",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.85,
+    "duration": 0.95,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "futuristic metal keyboard .wav"
+  },
+  {
+    "filename": "click_09_Game_Menu_Select_Sound_Effect.mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.9,
+    "duration": 1.78,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Game Menu Select Sound Effect.mp3"
+  },
+  {
+    "filename": "click_10_keyboard_press.mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 0.95,
+    "duration": 0.39,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "keyboard press.mp3"
+  },
+  {
+    "filename": "click_11_keyboard-typing-5997.mp3",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 1.0,
+    "duration": 15.6,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "keyboard-typing-5997.mp3"
+  },
+  {
+    "filename": "click_12_mixkit-gun-click-1123.wav",
+    "folder": "clicks",
+    "type": "click",
+    "intensity": 1.0,
+    "duration": 0.87,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "mixkit-gun-click-1123.wav"
+  },
+  {
+    "filename": "upbeat_01_Applause.wav",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.5,
+    "duration": 25.73,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Applause.wav"
+  },
+  {
+    "filename": "upbeat_02_Apple_Notification.wav",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.55,
+    "duration": 1.9,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Apple Notification.wav"
+  },
+  {
+    "filename": "upbeat_03_Cash_Register_(Kaching)_-_Sound_Effect_(HD).mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.6,
+    "duration": 3.13,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Cash Register (Kaching) - Sound Effect (HD).mp3"
+  },
+  {
+    "filename": "upbeat_04_Cash_Register_sounds_effects_No_Copyright_free_use.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.65,
+    "duration": 2.35,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Cash Register sounds effects No Copyright free use.mp3"
+  },
+  {
+    "filename": "upbeat_05_Cash_Register.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.7,
+    "duration": 3.07,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Cash Register.mp3"
+  },
+  {
+    "filename": "upbeat_06_cash_ting.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.75,
+    "duration": 1.4,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "cash ting.mp3"
+  },
+  {
+    "filename": "upbeat_07_cash-register-purchase-87313.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.8,
+    "duration": 2.81,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "cash-register-purchase-87313.mp3"
+  },
+  {
+    "filename": "upbeat_08_correct_sfx.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.85,
+    "duration": 1.45,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "correct sfx.mp3"
+  },
+  {
+    "filename": "upbeat_09_Ding_Sound_Effect.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.9,
+    "duration": 2.81,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Ding Sound Effect.mp3"
+  },
+  {
+    "filename": "upbeat_10_Ding.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 0.95,
+    "duration": 0.55,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Ding.mp3"
+  },
+  {
+    "filename": "upbeat_11_Discord_Join.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 1.0,
+    "duration": 2.95,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Discord_Join.mp3"
+  },
+  {
+    "filename": "upbeat_12_good-idea.mp3",
+    "folder": "upbeat",
+    "type": "upbeat",
+    "intensity": 1.0,
+    "duration": 3.55,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "good-idea.mp3"
   }
 ]

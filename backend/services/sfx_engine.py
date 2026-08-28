@@ -91,11 +91,25 @@ TAG_TO_SFX: Dict[ContentTag, Dict[str, Any]] = {
 }
 
 
+SFX_FOLDERS: Dict[str, str] = {
+    "impact": "impacts",
+    "boom": "booms",
+    "riser": "risers",
+    "glitch": "glitches",
+    "whoosh": "whooshes",
+    "transition": "transitions",
+    "heartbeat": "heartbeats",
+    "silence": "silence",
+    "click": "clicks",
+    "upbeat": "upbeat",
+}
+
+
 def _load_metadata() -> List[Dict[str, Any]]:
     """Load SFX metadata catalog. Returns empty list if not yet generated."""
     if not _META_PATH.exists():
         return []
-    with open(_META_PATH, "r") as f:
+    with open(_META_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -103,12 +117,16 @@ def _pick_sfx_file(sfx_type: str, intensity: float, metadata: List[Dict]) -> Opt
     """
     Pick the best SFX file for the given type and target intensity.
     Prefers files whose intensity is closest to the target.
-    Falls back to any file of the right type.
+    Falls back to any file of the right type or direct folder scanning.
     """
+    default_folder = SFX_FOLDERS.get(sfx_type, sfx_type + "s" if not sfx_type.endswith("s") else sfx_type)
     candidates = [m for m in metadata if m.get("type") == sfx_type]
+
     if not candidates:
         # Try filesystem scan as fallback
-        folder = _ASSETS_ROOT / sfx_type
+        folder = _ASSETS_ROOT / default_folder
+        if not folder.exists():
+            folder = _ASSETS_ROOT / sfx_type
         if folder.exists():
             files = list(folder.glob("*.wav")) + list(folder.glob("*.mp3"))
             return str(files[0]) if files else None
@@ -117,7 +135,15 @@ def _pick_sfx_file(sfx_type: str, intensity: float, metadata: List[Dict]) -> Opt
     # Sort by intensity proximity
     candidates.sort(key=lambda m: abs(m.get("intensity", 0.5) - intensity))
     chosen = candidates[0]
-    path = _ASSETS_ROOT / sfx_type / chosen["filename"]
+    folder_name = chosen.get("folder", default_folder)
+    path = _ASSETS_ROOT / folder_name / chosen["filename"]
+
+    # If file not found in subfolder, check direct sfx_type subfolder
+    if not path.exists():
+        fallback_path = _ASSETS_ROOT / sfx_type / chosen["filename"]
+        if fallback_path.exists():
+            return str(fallback_path)
+
     return str(path) if path.exists() else None
 
 

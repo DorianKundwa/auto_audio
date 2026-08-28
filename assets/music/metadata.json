@@ -1,36 +1,16 @@
 [
   {
-    "filename": "dark_documentary_01_real.wav",
+    "filename": "dark_documentary_01_AMBSprt_Ice_Ambience_Skating_Rink_Outdoor_03_ASD.wav",
     "folder": "dark_documentary",
     "moods": [
       "dark_documentary"
     ],
-    "duration": 2.33,
+    "duration": 29.6,
     "placeholder": false,
-    "source": "08 Rewinding.wav"
+    "source": "AMBSprt_Ice Ambience Skating Rink Outdoor 03_ASD.wav"
   },
   {
-    "filename": "dark_documentary_02_real.wav",
-    "folder": "dark_documentary",
-    "moods": [
-      "dark_documentary"
-    ],
-    "duration": 131.15,
-    "placeholder": false,
-    "source": "AMBMisc_Quiet Street Cold Night, Wind In The Trees, Cat, St_ASD.wav"
-  },
-  {
-    "filename": "dark_documentary_03_real.wav",
-    "folder": "dark_documentary",
-    "moods": [
-      "dark_documentary"
-    ],
-    "duration": 23.91,
-    "placeholder": false,
-    "source": "BOATMech_Crank Mechanism, Sailing Boat, Short, X6, Rope Winch, Exterior, Wind, L"
-  },
-  {
-    "filename": "dark_documentary_04_real.wav",
+    "filename": "dark_documentary_02_CREAEthr_Creature_Ghost_Banshee,_Scream,_High_Pitc.wav",
     "folder": "dark_documentary",
     "moods": [
       "dark_documentary"
@@ -40,17 +20,7 @@
     "source": "CREAEthr_Creature Ghost Banshee, Scream, High Pitch 01_ASD.wav"
   },
   {
-    "filename": "dark_documentary_05_real.wav",
-    "folder": "dark_documentary",
-    "moods": [
-      "dark_documentary"
-    ],
-    "duration": 92.95,
-    "placeholder": false,
-    "source": "CREAEthr_Creature Ghost Group Of Ghost, Breathe, Moaning, Whisper, Creepy, Dista"
-  },
-  {
-    "filename": "dark_documentary_06_real.wav",
+    "filename": "dark_documentary_03_CRWDBatl_Yelling_Exterior,_Crowd,_Soldiers_In_War_.wav",
     "folder": "dark_documentary",
     "moods": [
       "dark_documentary"
@@ -60,17 +30,107 @@
     "source": "CRWDBatl_Yelling Exterior, Crowd, Soldiers In War Field, Battlefield, Men, Yelli"
   },
   {
-    "filename": "mysterious_01_real.wav",
+    "filename": "dark_documentary_04_DSGNBram_Face_in_the_Mirror_Impact_ASD_XForce_x06.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 67.44,
+    "placeholder": false,
+    "source": "DSGNBram_Face in the Mirror Impact_ASD_XForce_x06.wav"
+  },
+  {
+    "filename": "dark_documentary_05_DSGNDron_Double_Bass,_Bowed,_Drone,_Harmonic,_Low_.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 65.79,
+    "placeholder": false,
+    "source": "DSGNDron_Double Bass, Bowed, Drone, Harmonic, Low Pitch, Bow Hair, Soft, Constan"
+  },
+  {
+    "filename": "dark_documentary_06_DSGNErie_Creature_Ghost_Theremin,_Classic,_Cliche,.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 5.8,
+    "placeholder": false,
+    "source": "DSGNErie_Creature Ghost Theremin, Classic, Cliche, Phrase B 04_ASD.wav"
+  },
+  {
+    "filename": "dark_documentary_07_DSGNErie_GHOSTS_Noise_Electro-Magnetic_Turbulence_.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 38.24,
+    "placeholder": false,
+    "source": "DSGNErie_GHOSTS Noise Electro-Magnetic Turbulence_ASD.wav"
+  },
+  {
+    "filename": "dark_documentary_08_DSGNErie_Magic_Generic_Potion,_Explosion,_Burst,_A.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 2.55,
+    "placeholder": false,
+    "source": "DSGNErie_Magic Generic Potion, Explosion, Burst, Alchemy, Small Bubbles 03_ASD.w"
+  },
+  {
+    "filename": "dark_documentary_09_DSGNEthr_GHOSTS_Breath_Pulsating_ASD.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 17.3,
+    "placeholder": false,
+    "source": "DSGNEthr_GHOSTS Breath Pulsating_ASD.wav"
+  },
+  {
+    "filename": "dark_documentary_10_DSGNEthr_GHOSTS_Swell_Riser_Vaporous_ASD.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 9.44,
+    "placeholder": false,
+    "source": "DSGNEthr_GHOSTS Swell Riser Vaporous_ASD.wav"
+  },
+  {
+    "filename": "mysterious_01_ANMLCat_Cat_Alley_Cat,_Street,_Meow_&_Groan_X6_ASD.wav",
     "folder": "mysterious",
     "moods": [
       "mysterious"
     ],
-    "duration": 100.67,
+    "duration": 18.75,
     "placeholder": false,
-    "source": "AMBSea_Marina Exterior, Pier 39, Port, Harbor Ambiance, Water Splashing, Wood Cr"
+    "source": "ANMLCat_Cat Alley Cat, Street, Meow & Groan X6_ASD.wav"
   },
   {
-    "filename": "mysterious_02_real.wav",
+    "filename": "mysterious_02_ANMLWild_Animal_Wild_Camel_B,_Grunt,_Groan,_Roar,_.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 2.16,
+    "placeholder": false,
+    "source": "ANMLWild_Animal Wild Camel B, Grunt, Groan, Roar, Harsh 06_ASD.wav"
+  },
+  {
+    "filename": "mysterious_03_BELLLrg_Metal_Bell_Ringing,_Chapel_Medium_Size,_St.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 22.57,
+    "placeholder": false,
+    "source": "BELLLrg_Metal Bell Ringing, Chapel Medium Size, Struck By Clapper, Long Resonanc"
+  },
+  {
+    "filename": "mysterious_04_BIRDFowl_Bird_Goose,_Scream,_Intense,_Single,_Isol.wav",
     "folder": "mysterious",
     "moods": [
       "mysterious"
@@ -80,7 +140,27 @@
     "source": "BIRDFowl_Bird Goose, Scream, Intense, Single, Isolated, Parc Safari, Canada, Seq"
   },
   {
-    "filename": "mysterious_03_real.wav",
+    "filename": "mysterious_05_BOATMech_Crank_Mechanism,_Sailing_Boat,_Short,_X6,.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 23.91,
+    "placeholder": false,
+    "source": "BOATMech_Crank Mechanism, Sailing Boat, Short, X6, Rope Winch, Exterior, Wind, L"
+  },
+  {
+    "filename": "mysterious_06_CHEMAcid_Chemical_Acid_Sizzle,_Burn,_Short_04_ASD.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 3.01,
+    "placeholder": false,
+    "source": "CHEMAcid_Chemical Acid Sizzle, Burn, Short 04_ASD.wav"
+  },
+  {
+    "filename": "mysterious_07_CREADino_Mosasaurus,_Aggro_01,_Full_Alternate_ASD_.wav",
     "folder": "mysterious",
     "moods": [
       "mysterious"
@@ -90,7 +170,7 @@
     "source": "CREADino_Mosasaurus, Aggro 01, Full Alternate_ASD_Extinct.wav"
   },
   {
-    "filename": "mysterious_04_real.wav",
+    "filename": "mysterious_08_CREADino_Mosasaurus,_Aggro_01,_Full_ASD_Extinct.wav",
     "folder": "mysterious",
     "moods": [
       "mysterious"
@@ -100,7 +180,7 @@
     "source": "CREADino_Mosasaurus, Aggro 01, Full_ASD_Extinct.wav"
   },
   {
-    "filename": "mysterious_05_real.wav",
+    "filename": "mysterious_09_CREADino_Mosasaurus,_Aggro_01,_Layer_A_ASD_Extinct.wav",
     "folder": "mysterious",
     "moods": [
       "mysterious"
@@ -110,7 +190,7 @@
     "source": "CREADino_Mosasaurus, Aggro 01, Layer A_ASD_Extinct.wav"
   },
   {
-    "filename": "mysterious_06_real.wav",
+    "filename": "mysterious_10_CREADino_Mosasaurus,_Aggro_01,_Layer_B_ASD_Extinct.wav",
     "folder": "mysterious",
     "moods": [
       "mysterious"
@@ -120,7 +200,7 @@
     "source": "CREADino_Mosasaurus, Aggro 01, Layer B_ASD_Extinct.wav"
   },
   {
-    "filename": "upbeat_01_real.wav",
+    "filename": "upbeat_01_Applause.wav",
     "folder": "upbeat",
     "moods": [
       "upbeat"
@@ -130,7 +210,7 @@
     "source": "Applause.wav"
   },
   {
-    "filename": "upbeat_02_real.wav",
+    "filename": "upbeat_02_Apple_Notification.wav",
     "folder": "upbeat",
     "moods": [
       "upbeat"
@@ -140,17 +220,7 @@
     "source": "Apple Notification.wav"
   },
   {
-    "filename": "upbeat_03_real.mp3",
-    "folder": "upbeat",
-    "moods": [
-      "upbeat"
-    ],
-    "duration": 4.44,
-    "placeholder": false,
-    "source": "Ascending sound effect.mp3"
-  },
-  {
-    "filename": "upbeat_04_real.mp3",
+    "filename": "upbeat_03_Cash_Register_(Kaching)_-_Sound_Effect_(HD).mp3",
     "folder": "upbeat",
     "moods": [
       "upbeat"
@@ -160,7 +230,7 @@
     "source": "Cash Register (Kaching) - Sound Effect (HD).mp3"
   },
   {
-    "filename": "upbeat_05_real.mp3",
+    "filename": "upbeat_04_Cash_Register_sounds_effects_No_Copyright_free_use.mp3",
     "folder": "upbeat",
     "moods": [
       "upbeat"
@@ -170,7 +240,7 @@
     "source": "Cash Register sounds effects No Copyright free use.mp3"
   },
   {
-    "filename": "upbeat_06_real.mp3",
+    "filename": "upbeat_05_Cash_Register.mp3",
     "folder": "upbeat",
     "moods": [
       "upbeat"
@@ -178,5 +248,55 @@
     "duration": 3.07,
     "placeholder": false,
     "source": "Cash Register.mp3"
+  },
+  {
+    "filename": "upbeat_06_cash_ting.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 1.4,
+    "placeholder": false,
+    "source": "cash ting.mp3"
+  },
+  {
+    "filename": "upbeat_07_cash-register-purchase-87313.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 2.81,
+    "placeholder": false,
+    "source": "cash-register-purchase-87313.mp3"
+  },
+  {
+    "filename": "upbeat_08_good-idea.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 3.55,
+    "placeholder": false,
+    "source": "good-idea.mp3"
+  },
+  {
+    "filename": "upbeat_09_Mountain_Audio_-_New_Idea_Notification.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 4.07,
+    "placeholder": false,
+    "source": "Mountain Audio - New Idea Notification.mp3"
+  },
+  {
+    "filename": "upbeat_10_quick-win.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 1.95,
+    "placeholder": false,
+    "source": "quick-win.mp3"
   }
 ]
