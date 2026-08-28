@@ -33,6 +33,7 @@ const state = {
   sfxLibrary: [],
   activeLibraryCategory: "all",
   previewAudio: new Audio(),
+  musicAudio: new Audio(),
   exportResolution: "1080p",
 };
 
@@ -454,17 +455,35 @@ function toggleVideoPlay() {
     state.isPlaying = true;
     document.getElementById("transport-play-btn").innerHTML = '<span class="material-symbols-outlined text-[18px]">pause</span>';
     document.getElementById("video-center-play-btn").classList.add("opacity-0", "pointer-events-none");
+
+    // Continuous looping music playback
+    if (state.musicConfig?.track_path) {
+      const musicPath = "/" + state.musicConfig.track_path.replace(/^\//, "");
+      if (state.musicAudio.src !== window.location.origin + musicPath) {
+        state.musicAudio.src = musicPath;
+      }
+      state.musicAudio.loop = true;
+      state.musicAudio.volume = Math.max(0.01, Math.min(1.0, (state.musicConfig.volume || 0.14) * 0.8));
+      if (state.musicAudio.duration) {
+        state.musicAudio.currentTime = state.currentTime % state.musicAudio.duration;
+      }
+      state.musicAudio.play().catch(() => {});
+    }
   } else {
     video.pause();
     state.isPlaying = false;
     document.getElementById("transport-play-btn").innerHTML = '<span class="material-symbols-outlined text-[18px]">play_arrow</span>';
     document.getElementById("video-center-play-btn").classList.remove("opacity-0", "pointer-events-none");
+    if (state.musicAudio) state.musicAudio.pause();
   }
 }
 
 function seekVideo(seconds) {
   const video = document.getElementById("studio-video");
   video.currentTime = Math.max(0, Math.min(seconds, state.videoDuration));
+  if (state.musicAudio && state.musicAudio.duration) {
+    state.musicAudio.currentTime = video.currentTime % state.musicAudio.duration;
+  }
   onVideoTimeUpdate();
 }
 

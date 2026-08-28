@@ -3,11 +3,11 @@ FFmpeg Renderer — assembles the final video with background music and SFX.
 
 Filter graph strategy:
   [0:a]  original video audio (or generated silence if video has no audio)
-  [1:a]  background music (looped, volume controlled)
+  [1:a]  background music (stream looped infinitely with -stream_loop -1, volume controlled)
   [2:a]  SFX event 0 (delayed to timestamp)
   [3:a]  SFX event 1 ...
   ...
-  → amix all together → output .mp4
+  → amix all together → output .mp4 trimmed by -shortest
 
 Video stream is copied (no re-encode) for speed.
 Audio is encoded as AAC 192k.
@@ -116,6 +116,7 @@ def _build_command(
 ) -> List[str]:
     """
     Construct the FFmpeg command with a dynamic filter_complex graph.
+    Continuous background music uses -stream_loop -1 to span arbitrary video lengths.
     """
     # ---- Inputs -------------------------------------------------------
     inputs: List[str] = ["-i", str(Path(video_path).resolve())]
@@ -125,7 +126,8 @@ def _build_command(
     if music_config and music_config.track_path:
         resolved_music = _resolve_file(music_config.track_path)
         if resolved_music:
-            inputs += ["-i", str(resolved_music)]
+            # -stream_loop -1 infinitely loops the music stream seamlessly
+            inputs += ["-stream_loop", "-1", "-i", str(resolved_music)]
             music_input_idx = input_idx
             input_idx += 1
         else:
@@ -157,10 +159,8 @@ def _build_command(
 
     if music_input_idx is not None and music_config:
         vol = max(0.01, min(1.0, float(music_config.volume)))
-        filter_parts.append(
-            f"[{music_input_idx}:a]volume={vol},"
-            f"aloop=loop=200:size=44100000[music_loop]"
-        )
+        # Looped at demuxer level via -stream_loop -1
+        filter_parts.append(f"[{music_input_idx}:a]volume={vol}[music_loop]")
         mix_labels.append("[music_loop]")
 
     for i, (idx, event) in enumerate(zip(sfx_input_indices, valid_events)):
