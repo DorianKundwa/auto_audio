@@ -366,3 +366,170 @@ body {
   color: var(--text-secondary);
   min-width: 52px;
 }
+
+/* ── DAW Multi-Track Studio Styling ──────────────────────────── */
+.daw-viewport {
+  position: relative;
+  background: #090b14;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.daw-ruler {
+  height: 28px;
+  background: rgba(15,23,42,0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  user-select: none;
+}
+
+.daw-track-row {
+  display: flex;
+  min-height: 52px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+}
+
+.daw-track-header {
+  width: 140px;
+  min-width: 140px;
+  background: rgba(13,17,28,0.95);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 10;
+}
+
+.daw-track-lane {
+  flex: 1;
+  position: relative;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 49px,
+    rgba(255,255,255,0.02) 50px
+  );
+  overflow-x: hidden;
+}
+
+.daw-clip {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.daw-clip:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.2);
+  z-index: 15;
+}
+
+.daw-clip.selected {
+  box-shadow: 0 0 0 2px #fff, 0 0 16px rgba(99,102,241,0.8);
+  z-index: 20;
+}
+
+.daw-playhead-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #f43f5e;
+  box-shadow: 0 0 10px #f43f5e, 0 0 20px #f43f5e;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.daw-playhead-handle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: #f43f5e;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* ── Sound Drawer Modal ───────────────────────────────────────── */
+.sound-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 90vw;
+  background: #0d0f1a;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  box-shadow: -12px 0 40px rgba(0,0,0,0.7);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  animation: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.sound-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sound-card:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.15);
+}
+
+/* ── Toast notification ───────────────────────────────────────── */
+.toast-banner {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(15,23,42,0.95);
+  border: 1px solid rgba(99,102,241,0.4);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(99,102,241,0.2);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 12px 18px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  animation: slide-up 0.25s ease;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}

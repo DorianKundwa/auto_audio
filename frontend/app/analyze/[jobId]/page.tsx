@@ -22,19 +22,21 @@ interface MusicConfig {
   mood: string;
 }
 
+interface AnalyzedSegment {
+  id: number;
+  start_sec: number;
+  end_sec: number;
+  text: string;
+  tag: string;
+  confidence: number;
+}
+
 interface TimelineResult {
   job_id: string;
   video_duration: number;
   sfx_events: SFXEvent[];
   music_config: MusicConfig;
-  analyzed_segments: {
-    id: number;
-    start_sec: number;
-    end_sec: number;
-    text: string;
-    tag: string;
-    confidence: number;
-  }[];
+  analyzed_segments: AnalyzedSegment[];
 }
 
 interface SFXLibraryItem {
@@ -48,24 +50,25 @@ interface SFXLibraryItem {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatTs(sec: number): string {
+  if (isNaN(sec) || sec < 0) sec = 0;
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   const cs = Math.floor((sec % 1) * 100);
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.${String(cs).padStart(2, "0")}`;
 }
 
-const SFX_CHIP_CLASSES: Record<string, string> = {
-  impact: "sfx-chip impact",
-  boom: "sfx-chip boom",
-  riser: "sfx-chip riser",
-  glitch: "sfx-chip glitch",
-  whoosh: "sfx-chip whoosh",
-  transition: "sfx-chip transition",
-  heartbeat: "sfx-chip heartbeat",
-  click: "sfx-chip click",
-  upbeat: "sfx-chip upbeat",
-  silence: "sfx-chip silence",
-  drop: "sfx-chip drop",
+const SFX_COLORS: Record<string, string> = {
+  impact: "#ef4444",
+  boom: "#f97316",
+  riser: "#8b5cf6",
+  glitch: "#06b6d4",
+  whoosh: "#10b981",
+  transition: "#6366f1",
+  heartbeat: "#f43f5e",
+  click: "#eab308",
+  upbeat: "#a855f7",
+  silence: "#64748b",
+  drop: "#64748b",
 };
 
 const SFX_ICONS: Record<string, string> = {
@@ -82,27 +85,12 @@ const SFX_ICONS: Record<string, string> = {
   drop: "🔇",
 };
 
-const SFX_COLORS: Record<string, string> = {
-  impact: "#ef4444",
-  boom: "#f97316",
-  riser: "#8b5cf6",
-  glitch: "#06b6d4",
-  whoosh: "#10b981",
-  transition: "#6366f1",
-  heartbeat: "#f43f5e",
-  click: "#eab308",
-  upbeat: "#a855f7",
-  silence: "#64748b",
-  drop: "#64748b",
-};
-
 const MOOD_DESCRIPTIONS: Record<string, string> = {
-  dark_documentary: "Dark Documentary — cinematic tension & drone pads",
-  mysterious: "Mysterious — unsettling atmospheric beds",
-  upbeat: "Upbeat — positive, energetic & light",
+  dark_documentary: "Dark Documentary — tension & heavy drones",
+  mysterious: "Mysterious — atmospheric & intriguing pads",
+  upbeat: "Upbeat — high-energy & motivating rhythms",
 };
 
-// Convert absolute local path to web static URL
 function toWebAssetUrl(localPath: string): string {
   if (!localPath) return "";
   const normalized = localPath.replace(/\\/g, "/");
@@ -113,135 +101,51 @@ function toWebAssetUrl(localPath: string): string {
   return apiUrl(localPath);
 }
 
-// ── SFX Row Component ─────────────────────────────────────────────────────────
-function SFXRow({
-  event,
-  index,
-  isActive,
-  isPlaying,
-  onPlayPreview,
-  onDelete,
-  onVolumeChange,
-  onSeek,
-}: {
-  event: SFXEvent;
-  index: number;
-  isActive: boolean;
-  isPlaying: boolean;
-  onPlayPreview: (path: string) => void;
-  onDelete: (id: string) => void;
-  onVolumeChange: (id: string, v: number) => void;
-  onSeek: (timestamp: number) => void;
-}) {
-  const chipClass = SFX_CHIP_CLASSES[event.sfx_type] ?? "sfx-chip";
-  const icon = SFX_ICONS[event.sfx_type] ?? "🔊";
-
-  return (
-    <div
-      id={`sfx-row-${event.id}`}
-      className={`timeline-row group ${isActive ? "active" : ""}`}
-      style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
-    >
-      {/* Timestamp button (click to seek) */}
-      <button
-        type="button"
-        onClick={() => onSeek(event.timestamp)}
-        className="ts flex-shrink-0 hover:text-indigo-300 transition-colors cursor-pointer text-left"
-        title="Click to seek video"
-      >
-        {formatTs(event.timestamp)}
-      </button>
-
-      {/* Audio Play Preview */}
-      <button
-        type="button"
-        onClick={() => onPlayPreview(event.sfx_path)}
-        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 transition-all ${
-          isPlaying
-            ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30 scale-105"
-            : "bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white"
-        }`}
-        title={isPlaying ? "Pause Preview" : "Play SFX Preview"}
-      >
-        {isPlaying ? "⏸" : "▶"}
-      </button>
-
-      {/* SFX type chip */}
-      <span className={chipClass}>
-        {icon} {event.label}
-      </span>
-
-      {/* Text snippet */}
-      <span className="flex-1 text-sm text-slate-300 truncate min-w-0 font-medium">
-        &quot;{event.text_snippet}&quot;
-      </span>
-
-      {/* Volume micro-slider */}
-      <div className="flex items-center gap-2 flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-        <span className="text-[10px] text-slate-500 font-mono">VOL</span>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={Math.round(event.volume * 100)}
-          onChange={(e) => onVolumeChange(event.id, parseInt(e.target.value) / 100)}
-          className="slider"
-          style={{ width: 72, "--pct": `${Math.round(event.volume * 100)}%` } as React.CSSProperties}
-        />
-        <span className="text-[10px] text-indigo-300 font-mono w-7 text-right">
-          {Math.round(event.volume * 100)}%
-        </span>
-      </div>
-
-      {/* Delete button */}
-      <button
-        type="button"
-        onClick={() => onDelete(event.id)}
-        className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-40 group-hover:opacity-100"
-        title="Remove this SFX"
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// ── Main Studio Page ──────────────────────────────────────────────────────────
 export default function AnalyzePage() {
   const router = useRouter();
   const routeParams = useParams();
   const jobId = typeof routeParams?.jobId === "string" ? routeParams.jobId : "";
 
+  // Data states
   const [timeline, setTimeline] = useState<TimelineResult | null>(null);
   const [events, setEvents] = useState<SFXEvent[]>([]);
   const [musicConfig, setMusicConfig] = useState<MusicConfig | null>(null);
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [sfxEnabled, setSfxEnabled] = useState(true);
+  const [library, setLibrary] = useState<SFXLibraryItem[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
+  // Playback & Timing
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [zoom, setZoom] = useState(1); // 1x to 4x
+
+  // Audio Previews
+  const [previewAudioPath, setPreviewAudioPath] = useState<string | null>(null);
+  const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
+
+  // Export & UI States
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportDone, setExportDone] = useState(false);
   const [error, setError] = useState("");
+  const [showDrawer, setShowDrawer] = useState(false);
+  const [drawerSearch, setDrawerSearch] = useState("");
+  const [drawerCategory, setDrawerCategory] = useState("all");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Audio Preview Player
-  const [playingPath, setPlayingPath] = useState<string | null>(null);
-  const [musicPlaying, setMusicPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Video reference
+  // Refs
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [activeEventId, setActiveEventId] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
+  const timelineViewportRef = useRef<HTMLDivElement | null>(null);
 
-  // Add SFX Modal State
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [library, setLibrary] = useState<SFXLibraryItem[]>([]);
-  const [newSfxType, setNewSfxType] = useState("impact");
-  const [newTimestamp, setNewTimestamp] = useState("2.5");
-  const [newVolume, setNewVolume] = useState(0.65);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3200);
+  };
 
-  // Load timeline from API
+  // Load timeline data
   useEffect(() => {
     if (!jobId) return;
     fetch(apiUrl(`/api/analyze/${jobId}`))
@@ -253,6 +157,9 @@ export default function AnalyzePage() {
         setTimeline(data);
         setEvents([...data.sfx_events]);
         setMusicConfig(data.music_config);
+        if (data.sfx_events.length > 0) {
+          setSelectedEventId(data.sfx_events[0].id);
+        }
         setLoading(false);
       })
       .catch((e) => {
@@ -261,7 +168,7 @@ export default function AnalyzePage() {
       });
   }, [jobId]);
 
-  // Load SFX library catalog for modal
+  // Load SFX library catalog
   useEffect(() => {
     fetch(apiUrl("/api/library/sfx"))
       .then((r) => r.ok && r.json())
@@ -269,113 +176,131 @@ export default function AnalyzePage() {
       .catch(() => {});
   }, []);
 
-  const handleDelete = useCallback((id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
+  const dur = timeline?.video_duration ?? 60.0;
+
+  // Video time update handler
+  const handleVideoTimeUpdate = () => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+    }
+  };
+
+  // Master Play / Pause Toggle
+  const togglePlay = useCallback(() => {
+    if (!videoRef.current) return;
+    if (videoRef.current.paused) {
+      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+    } else {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
   }, []);
 
-  const handleVolumeChange = useCallback((id: string, vol: number) => {
-    setEvents((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, volume: vol } : e))
-    );
-  }, []);
-
-  // Handle Playback Preview for SFX
-  const handlePlayPreview = useCallback((path: string) => {
-    const webUrl = toWebAssetUrl(path);
-    if (!webUrl) return;
-
-    if (playingPath === path) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+  // Keyboard shortcuts (Space = Play/Pause, Arrows = Seek)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)) {
+        return;
       }
-      setPlayingPath(null);
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault();
+        seekTo(Math.max(0, currentTime - 1));
+      } else if (e.code === "ArrowRight") {
+        e.preventDefault();
+        seekTo(Math.min(dur, currentTime + 1));
+      } else if (e.code === "KeyL") {
+        e.preventDefault();
+        setShowDrawer((d) => !d);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [togglePlay, currentTime, dur]);
+
+  // Seek video & playhead
+  const seekTo = (timestamp: number, eventId?: string) => {
+    const clamped = Math.max(0, Math.min(dur, timestamp));
+    setCurrentTime(clamped);
+    if (videoRef.current) {
+      videoRef.current.currentTime = clamped;
+    }
+    if (eventId) {
+      setSelectedEventId(eventId);
+    }
+  };
+
+  // Sound Effect Audio Preview
+  const playAudioPreview = (path: string) => {
+    const url = toWebAssetUrl(path);
+    if (!url) return;
+
+    if (previewAudioPath === path) {
+      if (audioPreviewRef.current) {
+        audioPreviewRef.current.pause();
+        audioPreviewRef.current = null;
+      }
+      setPreviewAudioPath(null);
       return;
     }
 
-    if (audioRef.current) {
-      audioRef.current.pause();
+    if (audioPreviewRef.current) {
+      audioPreviewRef.current.pause();
     }
 
-    const audio = new Audio(webUrl);
-    audioRef.current = audio;
-    setPlayingPath(path);
-
-    audio.onended = () => {
-      setPlayingPath(null);
-      audioRef.current = null;
-    };
-    audio.play().catch(() => setPlayingPath(null));
-  }, [playingPath]);
-
-  // Handle Background Music Preview
-  const handleToggleMusicPreview = useCallback(() => {
-    if (!musicConfig?.track_path) return;
-    const webUrl = toWebAssetUrl(musicConfig.track_path);
-    if (!webUrl) return;
-
-    if (musicPlaying) {
-      if (musicAudioRef.current) {
-        musicAudioRef.current.pause();
-        musicAudioRef.current = null;
-      }
-      setMusicPlaying(false);
-    } else {
-      const audio = new Audio(webUrl);
-      audio.volume = Math.min(1.0, musicConfig.volume * 2.5);
-      audio.loop = true;
-      musicAudioRef.current = audio;
-      audio.play().then(() => setMusicPlaying(true)).catch(() => setMusicPlaying(false));
-    }
-  }, [musicConfig, musicPlaying]);
-
-  // Handle Video Timeline Seek
-  const handleSeek = (timestamp: number, eventId?: string) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = timestamp;
-      videoRef.current.play().catch(() => {});
-    }
-    setCurrentTime(timestamp);
-    if (eventId) {
-      setActiveEventId(eventId);
-      const el = document.getElementById(`sfx-row-${eventId}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-    }
+    const audio = new Audio(url);
+    audioPreviewRef.current = audio;
+    setPreviewAudioPath(path);
+    audio.onended = () => setPreviewAudioPath(null);
+    audio.play().catch(() => setPreviewAudioPath(null));
   };
 
-  // Add Manual SFX to Timeline
-  const handleAddSFX = () => {
-    const ts = parseFloat(newTimestamp) || 0;
-    const matches = library.filter((item) => item.type === newSfxType);
-    const item = matches.length > 0 ? matches[0] : null;
-
+  // Insert Sound Effect from Drawer
+  const insertSoundEffect = (item: SFXLibraryItem) => {
+    const path = `assets/sfx/${item.folder}/${item.filename}`;
     const newEvent: SFXEvent = {
-      id: "manual-" + Math.random().toString(36).substr(2, 9),
-      timestamp: Math.max(0, Math.min(ts, dur)),
-      tag: newSfxType.toUpperCase(),
-      sfx_type: newSfxType,
-      sfx_path: item ? `assets/sfx/${item.folder}/${item.filename}` : "",
-      volume: newVolume,
-      label: newSfxType.toUpperCase(),
-      text_snippet: "Custom Placed SFX",
+      id: "sfx-" + Math.random().toString(36).substr(2, 9),
+      timestamp: parseFloat(currentTime.toFixed(2)),
+      tag: item.type.toUpperCase(),
+      sfx_type: item.type,
+      sfx_path: path,
+      volume: 0.65,
+      label: item.type.toUpperCase(),
+      text_snippet: `Custom: ${item.filename.slice(0, 24)}`,
     };
 
     setEvents((prev) => [...prev, newEvent].sort((a, b) => a.timestamp - b.timestamp));
-    setShowAddModal(false);
+    setSelectedEventId(newEvent.id);
+    playAudioPreview(path);
+    showToast(`✨ Added "${item.type.toUpperCase()}" at ${formatTs(currentTime)}`);
   };
 
-  // Export video via FFmpeg
+  // Delete event
+  const handleDeleteEvent = (id: string) => {
+    setEvents((prev) => prev.filter((e) => e.id !== id));
+    if (selectedEventId === id) setSelectedEventId(null);
+    showToast("🗑️ Sound effect removed");
+  };
+
+  // Update volume
+  const handleVolumeChange = (id: string, vol: number) => {
+    setEvents((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, volume: vol } : e))
+    );
+  };
+
+  // Export video
   async function handleExport() {
     setExporting(true);
-    setExportProgress(10);
+    setExportProgress(15);
     setError("");
 
     try {
       const progressInterval = setInterval(() => {
-        setExportProgress((p) => Math.min(p + 6, 88));
-      }, 1000);
+        setExportProgress((p) => Math.min(p + 8, 90));
+      }, 800);
 
       const res = await fetch(apiUrl(`/api/export/${jobId}`), {
         method: "POST",
@@ -397,7 +322,6 @@ export default function AnalyzePage() {
 
       setExportProgress(100);
 
-      // Trigger browser download
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -407,248 +331,285 @@ export default function AnalyzePage() {
       URL.revokeObjectURL(url);
 
       setExportDone(true);
+      showToast("🎉 Video successfully rendered and downloaded!");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
+      showToast("❌ Export failed");
     } finally {
       setExporting(false);
     }
   }
 
-  // Loading state
+  // Loading Screen
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <div className="spinner" style={{ width: 44, height: 44, borderWidth: 3 }} />
-        <p className="text-slate-400 text-sm font-medium">Analyzing script & scoring sound design…</p>
+        <p className="text-slate-400 text-sm font-medium">Opening Auto Audio Studio workspace…</p>
       </div>
     );
   }
 
-  if (error && !timeline) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6">
-        <div className="text-4xl">⚠️</div>
-        <p className="text-red-400 text-sm font-semibold">{error}</p>
-        <button
-          onClick={() => router.push("/")}
-          className="btn-primary px-6 py-2.5 rounded-xl text-sm"
-        >
-          Start over
-        </button>
-      </div>
-    );
-  }
-
-  const dur = timeline?.video_duration ?? 60.0;
-  const tagCounts: Record<string, number> = {};
-  for (const e of events) {
-    tagCounts[e.sfx_type] = (tagCounts[e.sfx_type] ?? 0) + 1;
-  }
+  const selectedEvent = events.find((e) => e.id === selectedEventId);
+  const filteredLibrary = library.filter((item) => {
+    const matchesCategory = drawerCategory === "all" || item.type === drawerCategory;
+    const matchesSearch =
+      !drawerSearch ||
+      item.filename.toLowerCase().includes(drawerSearch.toLowerCase()) ||
+      item.type.toLowerCase().includes(drawerSearch.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
-    <main className="min-h-screen flex flex-col">
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-30 px-6 py-4 flex items-center justify-between border-b border-white/5 backdrop-blur-xl bg-[rgba(8,9,15,0.7)]">
+    <main className="min-h-screen flex flex-col bg-[#08090f] text-slate-100 select-none">
+      {/* ── Top Header ── */}
+      <header className="h-14 px-6 flex items-center justify-between border-b border-white/5 bg-[#0a0c16] sticky top-0 z-40">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push("/")}
-            className="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1.5 font-medium"
+            className="text-xs font-semibold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
           >
             ← New Project
           </button>
           <div className="h-4 w-px bg-white/10" />
-          <span
-            className="font-bold text-lg tracking-tight"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            Auto<span className="text-indigo-400">Audio</span>
-          </span>
-          <span className="text-xs text-slate-500 font-mono px-2 py-0.5 rounded bg-white/5 border border-white/10">
-            {jobId.slice(0, 8)}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className="font-bold text-base tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Auto<span className="text-indigo-400">Audio</span>
+            </span>
+            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold">
+              Studio Pro
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Music / SFX toggles */}
-          <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-300 hover:text-white transition-colors">
+          {/* Track Mute Toggles */}
+          <div className="flex items-center gap-3 bg-white/5 px-3 py-1 rounded-xl border border-white/10 text-xs">
+            <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
               <input
                 type="checkbox"
                 className="custom-check"
                 checked={musicEnabled}
                 onChange={(e) => setMusicEnabled(e.target.checked)}
               />
-              Music
+              Music ({musicEnabled ? "ON" : "OFF"})
             </label>
             <div className="h-3 w-px bg-white/10" />
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-300 hover:text-white transition-colors">
+            <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
               <input
                 type="checkbox"
                 className="custom-check"
                 checked={sfxEnabled}
                 onChange={(e) => setSfxEnabled(e.target.checked)}
               />
-              SFX
+              SFX ({events.length})
             </label>
           </div>
 
+          {/* Sound Library Drawer Toggle */}
+          <button
+            onClick={() => setShowDrawer(true)}
+            className="btn-secondary px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5"
+          >
+            <span>📁</span> Sound Library (103)
+          </button>
+
+          {/* Export Button */}
           <button
             id="export-btn"
             onClick={handleExport}
             disabled={exporting}
-            className="btn-primary px-6 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/20"
+            className="btn-primary px-5 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20"
           >
             {exporting ? (
               <>
-                <span className="spinner" />
-                <span>Rendering…</span>
+                <span className="spinner" style={{ width: 14, height: 14 }} />
+                <span>Exporting ({exportProgress}%)…</span>
               </>
             ) : exportDone ? (
-              "✓ Export Downloaded"
+              "✓ Re-download Video"
             ) : (
-              "Export Video →"
+              "Render & Export ➔"
             )}
           </button>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto w-full px-6 py-8 space-y-6">
-        {/* ── Export progress ── */}
-        {exporting && (
-          <div className="glass rounded-2xl p-5 space-y-3 border-indigo-500/30">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-200 font-semibold flex items-center gap-2">
-                <span className="spinner" /> Rendering multi-track audio with FFmpeg…
-              </span>
-              <span className="text-indigo-400 font-mono font-bold">{exportProgress}%</span>
-            </div>
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: `${exportProgress}%` }} />
-            </div>
-            <p className="text-xs text-slate-500">
-              Mixing {events.length} dynamic SFX events and background score with sample-accurate delay.
-            </p>
-          </div>
-        )}
-
-        {/* ── Error ── */}
-        {error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 flex items-center gap-2">
-            <span>⚠️</span> <span>{error}</span>
-          </div>
-        )}
-
-        {/* ── Stats strip ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: "Duration", value: formatTs(dur) },
-            { label: "SFX Events Placed", value: String(events.length) },
-            {
-              label: "Background Track",
-              value: musicConfig ? MOOD_DESCRIPTIONS[musicConfig.mood]?.split(" — ")[0] ?? musicConfig.mood : "None",
-            },
-            {
-              label: "Music Volume",
-              value: musicConfig ? `${Math.round(musicConfig.volume * 100)}%` : "—",
-            },
-          ].map(({ label, value }) => (
-            <div key={label} className="glass rounded-xl p-4">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">
-                {label}
-              </p>
-              <p className="text-base font-bold text-slate-100 truncate">{value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Interactive Visual Timeline Scrubber ── */}
-        <div className="glass rounded-2xl p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <span>🎚️</span> Visual Timeline Track
-            </span>
-            <span className="text-xs font-mono text-indigo-300">
-              Current: {formatTs(currentTime)} / {formatTs(dur)}
-            </span>
-          </div>
-
-          <div
-            className="timeline-scrubber"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const clickX = e.clientX - rect.left;
-              const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-              handleSeek(ratio * dur);
-            }}
-          >
-            {/* Progress fill */}
-            <div
-              className="timeline-scrubber-progress"
-              style={{ width: `${(currentTime / Math.max(1, dur)) * 100}%` }}
+      {/* ── Main Split View (Video Preview + Sound Inspector) ── */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-hidden">
+        {/* ── Left Pane: Video Player Viewport (7 cols) ── */}
+        <div className="lg:col-span-7 flex flex-col gap-3">
+          <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/80 border border-white/10 shadow-2xl flex items-center justify-center group">
+            <video
+              ref={videoRef}
+              src={apiUrl(`/uploads/${jobId}/video.mp4`)}
+              onTimeUpdate={handleVideoTimeUpdate}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              className="w-full h-full object-contain"
             />
 
-            {/* Event marker pins */}
-            {events.map((e) => {
-              const pct = (e.timestamp / Math.max(1, dur)) * 100;
-              const color = SFX_COLORS[e.sfx_type] || "#6366f1";
-              return (
-                <div
-                  key={e.id}
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    handleSeek(e.timestamp, e.id);
-                  }}
-                  className="timeline-marker-pin"
-                  style={{
-                    left: `${pct}%`,
-                    backgroundColor: color,
-                    boxShadow: `0 0 8px ${color}`,
-                  }}
-                  title={`${e.label} at ${formatTs(e.timestamp)} - "${e.text_snippet}"`}
-                />
-              );
-            })}
+            {/* Video overlay play button */}
+            {!isPlaying && (
+              <button
+                onClick={togglePlay}
+                className="absolute inset-0 m-auto w-16 h-16 rounded-2xl bg-indigo-600/90 text-white text-2xl flex items-center justify-center backdrop-blur-md shadow-2xl shadow-indigo-500/40 hover:scale-110 transition-transform"
+              >
+                ▶
+              </button>
+            )}
+
+            {/* Timecode overlay HUD */}
+            <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 font-mono text-xs text-indigo-300 font-bold flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${isPlaying ? "bg-red-500 animate-ping" : "bg-slate-500"}`} />
+              {formatTs(currentTime)} / {formatTs(dur)}
+            </div>
           </div>
 
-          {/* SFX Category chips */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            {Object.entries(tagCounts).map(([type, count]) => (
-              <span key={type} className={SFX_CHIP_CLASSES[type] ?? "sfx-chip"}>
-                {SFX_ICONS[type]} {type.toUpperCase()} × {count}
-              </span>
-            ))}
+          {/* Quick Playback Bar */}
+          <div className="glass rounded-xl px-4 py-2 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => seekTo(Math.max(0, currentTime - 5))}
+                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-white/5"
+                title="Rewind 5s"
+              >
+                ⏪ -5s
+              </button>
+              <button
+                onClick={togglePlay}
+                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold transition-all"
+              >
+                {isPlaying ? "⏸" : "▶"}
+              </button>
+              <button
+                onClick={() => seekTo(Math.min(dur, currentTime + 5))}
+                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-white/5"
+                title="Forward 5s"
+              >
+                +5s ⏩
+              </button>
+            </div>
+
+            <span className="text-xs font-mono text-slate-400">
+              {events.length} Sound Effects • {musicConfig ? MOOD_DESCRIPTIONS[musicConfig.mood]?.split(" — ")[0] : "No Music"}
+            </span>
+
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Zoom</span>
+              {[1, 1.5, 2].map((z) => (
+                <button
+                  key={z}
+                  onClick={() => setZoom(z)}
+                  className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold transition-colors ${
+                    zoom === z ? "bg-indigo-500 text-white" : "bg-white/5 text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {z}x
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* ── Background Music Config Card ── */}
-        {musicConfig && musicEnabled && (
-          <div className="glass rounded-2xl p-5 border-violet-500/20 bg-gradient-to-r from-violet-500/5 to-transparent">
-            <p className="text-xs font-bold uppercase tracking-widest text-violet-400 mb-3 flex items-center gap-2">
-              <span>🎵</span> Ambient Score Track
-            </p>
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={handleToggleMusicPreview}
-                className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-all ${
-                  musicPlaying
-                    ? "bg-violet-500 text-white shadow-lg shadow-violet-500/30 scale-105"
-                    : "bg-violet-500/20 text-violet-300 hover:bg-violet-500/30"
-                }`}
-                title={musicPlaying ? "Pause music preview" : "Play music preview"}
-              >
-                {musicPlaying ? "⏸" : "▶"}
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-100">
-                  {MOOD_DESCRIPTIONS[musicConfig.mood] ?? musicConfig.mood}
-                </p>
-                <p className="text-xs text-slate-400 truncate mt-0.5 font-mono">
-                  {musicConfig.track_path.split(/[\\/]/).slice(-1)[0]}
-                </p>
+        {/* ── Right Pane: Inspector & Sound Event Details (5 cols) ── */}
+        <div className="lg:col-span-5 flex flex-col gap-4 overflow-y-auto max-h-[480px] pr-1">
+          {/* Selected SFX Inspector Card */}
+          {selectedEvent ? (
+            <div className="glass glass-glow rounded-2xl p-5 border-indigo-500/30 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{SFX_ICONS[selectedEvent.sfx_type] ?? "🔊"}</span>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                      <span>{selectedEvent.label}</span>
+                      <span className="text-xs font-mono px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300">
+                        {formatTs(selectedEvent.timestamp)}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400 truncate max-w-[200px] mt-0.5">
+                      {selectedEvent.sfx_path.split(/[\\/]/).pop()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => playAudioPreview(selectedEvent.sfx_path)}
+                    className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 flex items-center justify-center text-xs"
+                    title="Play Preview"
+                  >
+                    {previewAudioPath === selectedEvent.sfx_path ? "⏸" : "▶"}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteEvent(selectedEvent.id)}
+                    className="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center text-xs"
+                    title="Delete Event"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <span className="text-[11px] text-slate-400 font-mono">VOL</span>
+
+              {/* Subtitle Snippet */}
+              <div className="p-3 rounded-xl bg-black/40 border border-white/5 text-xs text-slate-300 italic">
+                &quot;{selectedEvent.text_snippet}&quot;
+              </div>
+
+              {/* Volume Slider */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs font-mono">
+                  <span className="text-slate-400">SFX Gain / Volume</span>
+                  <span className="text-indigo-300 font-bold">
+                    {Math.round(selectedEvent.volume * 100)}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(selectedEvent.volume * 100)}
+                  onChange={(e) => handleVolumeChange(selectedEvent.id, parseInt(e.target.value) / 100)}
+                  className="slider"
+                  style={{ "--pct": `${Math.round(selectedEvent.volume * 100)}%` } as React.CSSProperties}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="glass rounded-2xl p-6 text-center text-slate-500">
+              <p className="text-xs">Select any sound clip on the timeline below to edit its properties</p>
+            </div>
+          )}
+
+          {/* Background Music Card */}
+          {musicConfig && (
+            <div className="glass rounded-2xl p-4 border-violet-500/20 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">🎵</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-200">
+                      {MOOD_DESCRIPTIONS[musicConfig.mood] ?? musicConfig.mood}
+                    </h4>
+                    <p className="text-[10px] text-slate-400 font-mono truncate max-w-[200px]">
+                      {musicConfig.track_path.split(/[\\/]/).pop()}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => playAudioPreview(musicConfig.track_path)}
+                  className="w-7 h-7 rounded-lg bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 flex items-center justify-center text-xs"
+                >
+                  {previewAudioPath === musicConfig.track_path ? "⏸" : "▶"}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] text-slate-500 font-mono">MUSIC VOL</span>
                 <input
                   type="range"
                   min={0}
@@ -659,190 +620,265 @@ export default function AnalyzePage() {
                       m ? { ...m, volume: parseInt(e.target.value) / 100 } : m
                     )
                   }
-                  className="slider"
-                  style={{
-                    width: 100,
-                    "--pct": `${Math.round((musicConfig.volume / 0.3) * 100)}%`,
-                  } as React.CSSProperties}
+                  className="slider flex-1"
+                  style={{ "--pct": `${Math.round((musicConfig.volume / 0.3) * 100)}%` } as React.CSSProperties}
                 />
-                <span className="text-xs font-mono text-violet-300 w-10 text-right font-bold">
+                <span className="text-xs font-mono text-violet-300 font-bold w-8 text-right">
                   {Math.round(musicConfig.volume * 100)}%
                 </span>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* ── Timeline Header & Actions ── */}
-        <div className="flex items-center justify-between pt-2">
-          <div>
-            <h2
-              className="text-xl font-black tracking-tight"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            >
-              Sound Design Timeline
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Click timestamps to seek, preview audio hits, or fine-tune volumes
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="btn-secondary px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5"
-          >
-            <span>➕</span> Add Sound Effect
-          </button>
+          )}
         </div>
-
-        {/* ── SFX Event List ── */}
-        {events.length === 0 ? (
-          <div className="glass rounded-2xl p-12 text-center text-slate-500">
-            <div className="text-4xl mb-3">🔇</div>
-            <p className="text-sm font-medium">No SFX events found. Try adding a sound effect manually!</p>
-          </div>
-        ) : (
-          <div className="space-y-2.5">
-            {events.map((event, i) => (
-              <SFXRow
-                key={event.id}
-                event={event}
-                index={i}
-                isActive={activeEventId === event.id}
-                isPlaying={playingPath === event.sfx_path}
-                onPlayPreview={handlePlayPreview}
-                onDelete={handleDelete}
-                onVolumeChange={handleVolumeChange}
-                onSeek={(ts) => handleSeek(ts, event.id)}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* ── Analyzed Subtitle Segments Table (Collapsible) ── */}
-        <details className="group glass rounded-2xl p-4">
-          <summary className="cursor-pointer text-xs uppercase font-bold tracking-widest text-slate-400 hover:text-slate-200 transition-colors select-none flex items-center gap-2">
-            <span className="inline-block transition-transform group-open:rotate-90">▶</span>
-            AI Script Tag Classification ({timeline?.analyzed_segments.length ?? 0} subtitle segments)
-          </summary>
-          <div className="mt-4 space-y-1.5 max-h-72 overflow-y-auto pr-2">
-            {timeline?.analyzed_segments
-              .filter((s) => s.tag !== "NONE")
-              .map((seg) => (
-                <div
-                  key={seg.id}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-xs"
-                >
-                  <span className="ts">{formatTs(seg.start_sec)}</span>
-                  <span className={`sfx-chip ${seg.tag.toLowerCase()}`} style={{ fontSize: 10 }}>
-                    {seg.tag}
-                  </span>
-                  <span className="text-slate-300 truncate flex-1 font-medium">{seg.text}</span>
-                  <span className="text-[10px] text-slate-500 font-mono">
-                    {Math.round(seg.confidence * 100)}% conf
-                  </span>
-                </div>
-              ))}
-          </div>
-        </details>
       </div>
 
-      {/* ── Add Custom SFX Modal ── */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="glass glass-glow rounded-2xl max-w-md w-full p-6 space-y-5 bg-[#0d0f1a] border-indigo-500/30">
-            <div className="flex items-center justify-between">
-              <h3
-                className="text-lg font-bold text-slate-100"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+      {/* ── Bottom DAW Multi-Track Studio Timeline ── */}
+      <div className="px-6 pb-6">
+        <div className="daw-viewport" ref={timelineViewportRef}>
+          {/* DAW Time Ruler */}
+          <div
+            className="daw-ruler flex items-center cursor-pointer"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const clickX = e.clientX - rect.left - 140; // account for track header
+              const width = (rect.width - 140);
+              if (width > 0 && clickX >= 0) {
+                seekTo((clickX / width) * dur);
+              }
+            }}
+          >
+            <div className="w-[140px] min-w-[140px] px-3 text-[10px] font-mono text-slate-500 uppercase font-bold border-r border-white/5">
+              Timeline DAW
+            </div>
+            <div className="flex-1 relative h-full">
+              {/* Playhead Needle Handle */}
+              <div
+                className="daw-playhead-line"
+                style={{ left: `${(currentTime / Math.max(1, dur)) * 100}%` }}
               >
-                ➕ Add Sound Effect
-              </h3>
+                <div className="daw-playhead-handle" />
+              </div>
+
+              {/* Time tick labels */}
+              {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
+                <span
+                  key={pct}
+                  className="absolute top-1.5 text-[9px] font-mono text-slate-500 -translate-x-1/2"
+                  style={{ left: `${pct * 100}%` }}
+                >
+                  {formatTs(pct * dur)}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Track 1: Subtitle / Speech Segments */}
+          <div className="daw-track-row">
+            <div className="daw-track-header">
+              <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                <span>🎙️</span> Narration
+              </span>
+              <span className="text-[9px] text-slate-500">
+                {timeline?.analyzed_segments.length ?? 0} segments
+              </span>
+            </div>
+            <div
+              className="daw-track-lane"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                seekTo((clickX / rect.width) * dur);
+              }}
+            >
+              {timeline?.analyzed_segments.map((seg) => {
+                const left = (seg.start_sec / Math.max(1, dur)) * 100;
+                const width = Math.max(2, ((seg.end_sec - seg.start_sec) / Math.max(1, dur)) * 100);
+                return (
+                  <div
+                    key={seg.id}
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      seekTo(seg.start_sec);
+                    }}
+                    className="absolute top-1.5 bottom-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 px-2 flex items-center text-[10px] text-slate-300 truncate cursor-pointer transition-colors"
+                    style={{ left: `${left}%`, width: `${width}%` }}
+                    title={`"${seg.text}" (${formatTs(seg.start_sec)})`}
+                  >
+                    <span className="truncate">{seg.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Track 2: Sound Effects (SFX) Track */}
+          <div className="daw-track-row" style={{ minHeight: 64 }}>
+            <div className="daw-track-header">
+              <span className="text-[11px] font-bold text-indigo-300 flex items-center gap-1.5">
+                <span>⚡</span> Sound Effects
+              </span>
+              <span className="text-[9px] text-slate-500">{events.length} clips placed</span>
+            </div>
+            <div
+              className="daw-track-lane"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                seekTo((clickX / rect.width) * dur);
+              }}
+            >
+              {events.map((ev) => {
+                const left = (ev.timestamp / Math.max(1, dur)) * 100;
+                const color = SFX_COLORS[ev.sfx_type] || "#6366f1";
+                const isSelected = selectedEventId === ev.id;
+
+                return (
+                  <div
+                    key={ev.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      seekTo(ev.timestamp, ev.id);
+                    }}
+                    className={`daw-clip ${isSelected ? "selected" : ""}`}
+                    style={{
+                      left: `${left}%`,
+                      backgroundColor: `${color}33`,
+                      border: `1px solid ${color}`,
+                      color: color,
+                    }}
+                  >
+                    <span>{SFX_ICONS[ev.sfx_type]}</span>
+                    <span>{ev.label}</span>
+                    <span className="text-[9px] opacity-75 font-mono">
+                      {Math.round(ev.volume * 100)}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Track 3: Ambient Music Bed */}
+          <div className="daw-track-row">
+            <div className="daw-track-header">
+              <span className="text-[11px] font-bold text-violet-300 flex items-center gap-1.5">
+                <span>🎵</span> Ambient Score
+              </span>
+              <span className="text-[9px] text-slate-500">
+                {musicConfig ? musicConfig.mood : "Disabled"}
+              </span>
+            </div>
+            <div
+              className="daw-track-lane"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                seekTo((clickX / rect.width) * dur);
+              }}
+            >
+              {musicConfig && musicEnabled && (
+                <div
+                  className="absolute inset-y-1.5 inset-x-0 rounded bg-gradient-to-r from-violet-500/20 via-indigo-500/20 to-violet-500/20 border border-violet-500/30 flex items-center px-4 justify-between"
+                >
+                  <span className="text-[10px] text-violet-300 font-mono">
+                    {musicConfig.track_path.split(/[\\/]/).pop()}
+                  </span>
+                  <span className="text-[9px] font-mono text-violet-400">
+                    Looping Continuous
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Slide-Out Sound Library Drawer ── */}
+      {showDrawer && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
+          <div className="sound-drawer">
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#0f1220]">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📁</span>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Sound Library Catalog</h3>
+                  <p className="text-[10px] text-slate-400">103 studio sounds ready to drop</p>
+                </div>
+              </div>
               <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-white"
+                onClick={() => setShowDrawer(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
-                  Sound Effect Category
-                </label>
-                <select
-                  value={newSfxType}
-                  onChange={(e) => setNewSfxType(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="impact">🔊 Impact (Hits & Crashes)</option>
-                  <option value="boom">💥 Boom (Subsonic & Bass Drops)</option>
-                  <option value="riser">🎵 Riser (Tension & Sweeps)</option>
-                  <option value="glitch">⚡ Glitch (Digital & Tech)</option>
-                  <option value="whoosh">💨 Whoosh (Swipes & Air)</option>
-                  <option value="transition">⚡ Transition (Scene Cuts)</option>
-                  <option value="heartbeat">💓 Heartbeat (Pulses & Clocks)</option>
-                  <option value="click">🖱️ Click (Foley & UI)</option>
-                  <option value="upbeat">✨ Upbeat (Reward Chimes)</option>
-                  <option value="silence">🔇 Drop / Silence</option>
-                </select>
-              </div>
+            {/* Search & Category Filter */}
+            <div className="p-4 space-y-3 border-b border-white/5 bg-[#090b14]">
+              <input
+                type="text"
+                placeholder="Search sound effects..."
+                value={drawerSearch}
+                onChange={(e) => setDrawerSearch(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              />
 
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
-                  Timestamp (seconds)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max={dur}
-                  value={newTimestamp}
-                  onChange={(e) => setNewTimestamp(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Volume
-                  </label>
-                  <span className="text-xs font-mono text-indigo-300 font-bold">
-                    {Math.round(newVolume * 100)}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={Math.round(newVolume * 100)}
-                  onChange={(e) => setNewVolume(parseInt(e.target.value) / 100)}
-                  className="slider w-full"
-                  style={{ "--pct": `${Math.round(newVolume * 100)}%` } as React.CSSProperties}
-                />
+              <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
+                {["all", "impact", "boom", "riser", "glitch", "whoosh", "transition", "heartbeat", "click", "upbeat"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setDrawerCategory(cat)}
+                    className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-wider transition-colors ${
+                      drawerCategory === cat
+                        ? "bg-indigo-500 text-white"
+                        : "bg-white/5 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="btn-secondary px-4 py-2 rounded-xl text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleAddSFX}
-                className="btn-primary px-5 py-2 rounded-xl text-xs font-bold"
-              >
-                Add to Timeline
-              </button>
+            {/* Sound Items List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {filteredLibrary.map((item, idx) => (
+                <div key={idx} className="sound-card">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <button
+                      onClick={() => playAudioPreview(`assets/sfx/${item.folder}/${item.filename}`)}
+                      className="w-7 h-7 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-300 hover:text-white flex items-center justify-center text-xs flex-shrink-0 transition-colors"
+                    >
+                      {previewAudioPath === `assets/sfx/${item.folder}/${item.filename}` ? "⏸" : "▶"}
+                    </button>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-slate-200 truncate max-w-[180px]">
+                        {item.filename}
+                      </p>
+                      <span className="text-[9px] font-mono text-indigo-400 uppercase font-bold">
+                        {item.type} • {item.duration}s
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => insertSoundEffect(item)}
+                    className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-indigo-600 text-[10px] font-bold text-slate-200 hover:text-white transition-colors"
+                  >
+                    + Insert
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Toast Notification Banner ── */}
+      {toastMessage && (
+        <div className="toast-banner">
+          <span>{toastMessage}</span>
         </div>
       )}
     </main>
