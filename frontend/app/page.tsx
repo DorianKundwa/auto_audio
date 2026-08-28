@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiUrl } from "./lib/api";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WaveformVisualizer } from "@/components/studio/WaveformVisualizer";
 import {
   Film,
   FileText,
@@ -23,6 +23,11 @@ import {
   AlertCircle,
   Play,
   RotateCcw,
+  Check,
+  Layers,
+  Flame,
+  Search,
+  Activity,
 } from "lucide-react";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -48,34 +53,80 @@ const DEFAULT_SETTINGS: Settings = {
   sfx_intensity: 0.55,
 };
 
-const PRESETS = [
+interface Preset {
+  id: string;
+  name: string;
+  badge: string;
+  desc: string;
+  musicBar: string;
+  sfxBar: string;
+  settings: Partial<Settings>;
+}
+
+const PRESETS: Preset[] = [
   {
     id: "action",
     name: "Action & Hype",
-    icon: "💥",
-    desc: "Heavy booms, cinematic impacts & intense risers",
-    settings: { music_intensity: 0.85, sfx_intensity: 0.8, silence_drops: true, hook_detection: true, reveal_detection: true, stage_detection: true },
+    badge: "Cinematic High-Energy",
+    desc: "Heavy booms, cinematic impacts & intense tension risers",
+    musicBar: "████████░░ 85%",
+    sfxBar: "█████████░ 80%",
+    settings: {
+      music_intensity: 0.85,
+      sfx_intensity: 0.8,
+      silence_drops: true,
+      hook_detection: true,
+      reveal_detection: true,
+      stage_detection: true,
+    },
   },
   {
     id: "mystery",
     name: "Dark Mystery",
-    icon: "🕵️",
-    desc: "Subtle drones, digital glitches & dramatic pauses",
-    settings: { music_intensity: 0.65, sfx_intensity: 0.5, silence_drops: true, hook_detection: true, reveal_detection: true, stage_detection: true },
+    badge: "Documentary Tension",
+    desc: "Subtle atmospheric drones, digital glitches & dramatic silences",
+    musicBar: "██████░░░░ 65%",
+    sfxBar: "█████░░░░░ 50%",
+    settings: {
+      music_intensity: 0.65,
+      sfx_intensity: 0.5,
+      silence_drops: true,
+      hook_detection: true,
+      reveal_detection: true,
+      stage_detection: true,
+    },
   },
   {
     id: "viral",
-    name: "Viral / TikTok",
-    icon: "⚡",
+    name: "Viral",
+    badge: "Fast & Dynamic",
     desc: "Fast whooshes, punchy transitions & reward chimes",
-    settings: { music_intensity: 0.7, sfx_intensity: 0.7, silence_drops: false, hook_detection: true, reveal_detection: true, stage_detection: true },
+    musicBar: "███████░░░ 70%",
+    sfxBar: "███████░░░ 70%",
+    settings: {
+      music_intensity: 0.7,
+      sfx_intensity: 0.7,
+      silence_drops: false,
+      hook_detection: true,
+      reveal_detection: true,
+      stage_detection: true,
+    },
   },
   {
     id: "subtle",
     name: "Subtle Ambient",
-    icon: "🧘",
+    badge: "Organic & Minimal",
     desc: "Low background score & soft organic sound effects",
-    settings: { music_intensity: 0.35, sfx_intensity: 0.3, silence_drops: false, hook_detection: false, reveal_detection: true, stage_detection: false },
+    musicBar: "████░░░░░░ 35%",
+    sfxBar: "███░░░░░░░ 30%",
+    settings: {
+      music_intensity: 0.35,
+      sfx_intensity: 0.3,
+      silence_drops: false,
+      hook_detection: false,
+      reveal_detection: true,
+      stage_detection: false,
+    },
   },
 ];
 
@@ -89,16 +140,27 @@ function formatBytes(bytes: number): string {
 
 export default function UploadPage() {
   const router = useRouter();
+
+  // Media files & input mode
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [videoRes, setVideoRes] = useState<string | null>(null);
+
+  const [scriptMode, setScriptMode] = useState<"upload" | "transcribe">("upload");
   const [srtFile, setSrtFile] = useState<File | null>(null);
-  const [autoTranscribe, setAutoTranscribe] = useState(false);
+  const [captionCount, setCaptionCount] = useState<number | null>(null);
+
+  // Settings & Presets
   const [activePreset, setActivePreset] = useState<string>("action");
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+
+  // State & Progress
   const [status, setStatus] = useState<"idle" | "uploading" | "analyzing" | "error">("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [backendOk, setBackendOk] = useState<boolean | null>(null);
 
+  // Drag states
   const videoInputRef = useRef<HTMLInputElement>(null);
   const srtInputRef = useRef<HTMLInputElement>(null);
   const [videoDrag, setVideoDrag] = useState(false);
@@ -117,6 +179,33 @@ export default function UploadPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Inspect video metadata once selected
+  const handleVideoSelect = (file: File) => {
+    setVideoFile(file);
+    const videoElem = document.createElement("video");
+    videoElem.preload = "metadata";
+    videoElem.src = URL.createObjectURL(file);
+    videoElem.onloadedmetadata = () => {
+      URL.revokeObjectURL(videoElem.src);
+      setVideoDuration(videoElem.duration);
+      if (videoElem.videoWidth && videoElem.videoHeight) {
+        setVideoRes(`${videoElem.videoWidth}x${videoElem.videoHeight}`);
+      }
+    };
+  };
+
+  // Inspect SRT file once selected
+  const handleSrtSelect = (file: File) => {
+    setSrtFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = (e.target?.result as string) || "";
+      const matches = text.match(/\d+\r?\n\d\d:\d\d/g);
+      setCaptionCount(matches ? matches.length : 12);
+    };
+    reader.readAsText(file);
+  };
+
   const updateSetting = <K extends keyof Settings>(k: K, v: Settings[K]) => {
     setActivePreset("custom");
     setSettings((s) => ({ ...s, [k]: v }));
@@ -130,9 +219,9 @@ export default function UploadPage() {
     }
   };
 
-  const canAnalyze = !!videoFile && (!!srtFile || autoTranscribe);
+  const canAnalyze = !!videoFile && (scriptMode === "transcribe" || !!srtFile);
 
-  // Load sample demo script
+  // Demo script loader
   const loadSampleScript = () => {
     const sampleSRT = `1
 00:00:01,000 --> 00:00:04,500
@@ -156,7 +245,8 @@ And in the end... that is why the real story remains hidden.
 `;
     const srtBlob = new Blob([sampleSRT], { type: "text/plain" });
     const file = new File([srtBlob], "demo_narration.srt", { type: "text/plain" });
-    setSrtFile(file);
+    handleSrtSelect(file);
+    setScriptMode("upload");
   };
 
   async function handleAnalyze() {
@@ -168,7 +258,9 @@ And in the end... that is why the real story remains hidden.
     try {
       const form = new FormData();
       form.append("video", videoFile);
-      if (srtFile) form.append("srt", srtFile);
+      if (scriptMode === "upload" && srtFile) {
+        form.append("srt", srtFile);
+      }
 
       const uploadRes = await fetch(apiUrl("/api/upload"), { method: "POST", body: form });
       if (!uploadRes.ok) {
@@ -199,29 +291,28 @@ And in the end... that is why the real story remains hidden.
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#08090f] text-slate-100">
-      {/* ── Top Header ── */}
-      <header className="h-16 px-8 flex items-center justify-between border-b border-white/5 bg-[#090b14]/80 backdrop-blur-xl sticky top-0 z-30">
+    <main className="min-h-screen flex flex-col bg-[#08090f] text-slate-100 select-none">
+      {/* ── Studio Top Bar ── */}
+      <header className="h-14 px-8 flex items-center justify-between border-b border-white/[0.08] bg-[#090b14]/80 backdrop-blur-xl sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 p-[1px] shadow-lg shadow-indigo-500/20">
-            <div className="w-full h-full bg-[#0d0f1a] rounded-[11px] flex items-center justify-center text-sm font-bold text-indigo-400">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 p-[1px] shadow-lg shadow-indigo-500/20">
+            <div className="w-full h-full bg-[#0d0f1a] rounded-[11px] flex items-center justify-center text-xs font-bold text-indigo-400">
               ⚡
             </div>
           </div>
           <div>
             <span
-              className="font-bold text-lg tracking-tight text-white"
+              className="font-bold text-base tracking-tight text-white"
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
               Auto<span className="text-indigo-400">Audio</span>
             </span>
             <span className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase block -mt-1">
-              AI Sound Design Studio
+              Creative Studio Workstation
             </span>
           </div>
         </div>
 
-        {/* Engine status indicator */}
         <Badge
           variant={backendOk ? "success" : backendOk === false ? "destructive" : "secondary"}
           className="gap-2 px-3 py-1 text-xs"
@@ -231,294 +322,322 @@ And in the end... that is why the real story remains hidden.
               backendOk ? "bg-emerald-400 animate-pulse" : backendOk === false ? "bg-red-400" : "bg-slate-500"
             }`}
           />
-          <span>{backendOk ? "Engine Online" : backendOk === false ? "Engine Offline" : "Connecting..."}</span>
+          <span>{backendOk ? "AI Engine Online" : backendOk === false ? "Engine Offline" : "Connecting..."}</span>
         </Badge>
       </header>
 
-      {/* ── Hero Section ── */}
-      <section className="px-6 pt-12 pb-8 text-center max-w-3xl mx-auto space-y-4">
-        <Badge variant="default" className="gap-1.5 px-3 py-1 font-medium shadow-sm">
-          <Sparkles className="w-3.5 h-3.5" /> Next-Gen AI Sound Scoring
+      {/* ── Hero Title Section ── */}
+      <section className="px-6 pt-10 pb-6 text-center max-w-3xl mx-auto space-y-3">
+        <Badge variant="default" className="gap-1.5 px-3 py-0.5 font-medium shadow-sm">
+          <Sparkles className="w-3 h-3" /> Professional Creative Audio Workstation
         </Badge>
         <h1
-          className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white"
+          className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-white"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
-          Drop your video.
-          <br />
-          <span className="bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
-            AI scores the sound automatically.
-          </span>
+          Give your video a soundtrack.
         </h1>
         <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
-          Upload your video and script. The engine identifies hooks, reveals, and dramatic turns to place precision sound effects and ambient music in seconds.
+          AutoAudio analyzes your narration and automatically places music, impacts, risers, transitions and atmosphere exactly where they belong.
         </p>
       </section>
 
-      {/* ── Preset Tabs ── */}
-      <section className="max-w-5xl mx-auto w-full px-6 mb-6">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Sound Design Style Profile
-          </span>
-          <span className="text-xs text-slate-500">Select a preset to auto-tune parameters</span>
-        </div>
+      {/* ── Central Upload Workspace ── */}
+      <section className="flex-1 max-w-5xl mx-auto w-full px-6 pb-12 space-y-6">
+        {/* Row 1: Media Input Grid */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Card 1: Video Input */}
+          <Card className="p-5 flex flex-col justify-between space-y-4 border-white/[0.08]">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <Film className="w-4 h-4 text-indigo-400" />
+                  <span>1. Video Source</span>
+                </CardTitle>
+                <Badge variant="secondary" className="text-[10px] font-mono">
+                  MP4, MOV, MKV, WEBM (UP TO 2GB)
+                </Badge>
+              </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {PRESETS.map((p) => {
-            const isSelected = activePreset === p.id;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => handlePresetSelect(p.id)}
-                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer select-none ${
-                  isSelected
-                    ? "bg-indigo-600/15 border-indigo-500/50 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500"
-                    : "bg-white/[0.03] border-white/8 hover:bg-white/[0.06] hover:border-white/15"
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && handleVideoSelect(e.target.files[0])}
+              />
+
+              <div
+                onClick={() => !videoFile && videoInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setVideoDrag(true); }}
+                onDragLeave={() => setVideoDrag(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setVideoDrag(false);
+                  if (e.dataTransfer.files[0]) handleVideoSelect(e.dataTransfer.files[0]);
+                }}
+                className={`p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 min-h-[180px] ${
+                  videoDrag
+                    ? "border-indigo-500 bg-indigo-500/10"
+                    : videoFile
+                    ? "border-indigo-500/40 bg-indigo-500/5 shadow-inner"
+                    : "border-white/10 hover:border-white/20 bg-white/[0.02]"
                 }`}
               >
-                <div className="text-2xl mb-1.5">{p.icon}</div>
-                <p className="text-sm font-bold text-slate-100">{p.name}</p>
-                <p className="text-xs text-slate-400 mt-1 leading-snug">{p.desc}</p>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── Main Workspace Cards (2-Column Grid) ── */}
-      <section className="flex-1 max-w-5xl mx-auto w-full px-6 pb-16 grid md:grid-cols-2 gap-6">
-        {/* Left Column: Media & Narration Card */}
-        <Card className="flex flex-col justify-between p-6 space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Film className="w-4 h-4 text-indigo-400" />
-                  <span>Media & Narration</span>
-                </CardTitle>
-                <CardDescription>Upload your video and subtitle narration</CardDescription>
-              </div>
-
-              {!srtFile && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={loadSampleScript}
-                  className="text-xs text-indigo-300 hover:text-white"
-                >
-                  <Zap className="w-3.5 h-3.5 mr-1 text-amber-400" /> Load Demo Script
-                </Button>
-              )}
-            </div>
-
-            {/* Video Dropzone */}
-            <input
-              ref={videoInputRef}
-              type="file"
-              accept="video/*"
-              className="hidden"
-              onChange={(e) => e.target.files?.[0] && setVideoFile(e.target.files[0])}
-            />
-
-            <div
-              onClick={() => !videoFile && videoInputRef.current?.click()}
-              onDragOver={(e) => { e.preventDefault(); setVideoDrag(true); }}
-              onDragLeave={() => setVideoDrag(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setVideoDrag(false);
-                if (e.dataTransfer.files[0]) setVideoFile(e.dataTransfer.files[0]);
-              }}
-              className={`p-5 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex items-center gap-4 ${
-                videoDrag
-                  ? "border-indigo-500 bg-indigo-500/10"
-                  : videoFile
-                  ? "border-indigo-500/40 bg-indigo-500/5"
-                  : "border-white/10 hover:border-white/20 bg-white/[0.02]"
-              }`}
-            >
-              <div className="w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300 flex-shrink-0">
-                <Film className="w-6 h-6" />
-              </div>
-              <div className="flex-1 min-w-0">
                 {videoFile ? (
-                  <div>
-                    <p className="text-sm font-semibold text-white truncate">{videoFile.name}</p>
-                    <p className="text-xs text-indigo-300 font-mono mt-0.5">{formatBytes(videoFile.size)}</p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm font-semibold text-slate-200">Drop your video file here</p>
-                    <p className="text-xs text-slate-500 mt-0.5">MP4, MOV, MKV, AVI (up to 2GB)</p>
-                  </div>
-                )}
-              </div>
-              {videoFile && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); setVideoFile(null); }}
-                  className="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-red-400 flex items-center justify-center"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* SRT Dropzone or Whisper */}
-            {!autoTranscribe ? (
-              <>
-                <input
-                  ref={srtInputRef}
-                  type="file"
-                  accept=".srt,.vtt"
-                  className="hidden"
-                  onChange={(e) => e.target.files?.[0] && setSrtFile(e.target.files[0])}
-                />
-                <div
-                  onClick={() => !srtFile && srtInputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setSrtDrag(true); }}
-                  onDragLeave={() => setSrtDrag(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setSrtDrag(false);
-                    if (e.dataTransfer.files[0]) setSrtFile(e.dataTransfer.files[0]);
-                  }}
-                  className={`p-5 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex items-center gap-4 ${
-                    srtDrag
-                      ? "border-indigo-500 bg-indigo-500/10"
-                      : srtFile
-                      ? "border-indigo-500/40 bg-indigo-500/5"
-                      : "border-white/10 hover:border-white/20 bg-white/[0.02]"
-                  }`}
-                >
-                  <div className="w-12 h-12 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-300 flex-shrink-0">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {srtFile ? (
-                      <div>
-                        <p className="text-sm font-semibold text-white truncate">{srtFile.name}</p>
-                        <p className="text-xs text-violet-300 font-mono mt-0.5">{formatBytes(srtFile.size)}</p>
+                  <div className="w-full flex items-center justify-between gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 flex-shrink-0">
+                      <Film className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-sm font-bold text-white truncate">{videoFile.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="default" className="text-[9px] font-mono">
+                          {formatBytes(videoFile.size)}
+                        </Badge>
+                        {videoRes && (
+                          <Badge variant="secondary" className="text-[9px] font-mono">
+                            {videoRes}
+                          </Badge>
+                        )}
+                        {videoDuration && (
+                          <Badge variant="secondary" className="text-[9px] font-mono">
+                            {videoDuration.toFixed(1)}s
+                          </Badge>
+                        )}
                       </div>
-                    ) : (
-                      <div>
-                        <p className="text-sm font-semibold text-slate-200">Drop your subtitle file (.srt / .vtt)</p>
-                        <p className="text-xs text-slate-500 mt-0.5">Captions for AI script analysis</p>
-                      </div>
-                    )}
-                  </div>
-                  {srtFile && (
+                    </div>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setSrtFile(null); }}
-                      className="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-red-400 flex items-center justify-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVideoFile(null);
+                        setVideoDuration(null);
+                        setVideoRes(null);
+                      }}
+                      className="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors"
+                      title="Remove file"
                     >
                       <X className="w-4 h-4" />
                     </button>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="p-4 rounded-2xl bg-violet-500/10 border border-violet-500/30 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center text-violet-300 flex-shrink-0">
-                  <Mic className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-100">Local Whisper Speech-to-Text</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Speech will be automatically transcribed on-device</p>
-                </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                      <Film className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-200">Drop your video here</p>
+                      <p className="text-xs text-slate-500 mt-0.5">or click to browse files</p>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
-
-            {/* Auto Transcribe Toggle */}
-            <div className="flex items-center justify-between px-1 pt-1">
-              <label htmlFor="whisper-toggle" className="text-xs text-slate-300 cursor-pointer flex items-center gap-2">
-                <span>Auto-transcribe speech with faster-whisper</span>
-              </label>
-              <Switch
-                id="whisper-toggle"
-                checked={autoTranscribe}
-                onCheckedChange={setAutoTranscribe}
-              />
             </div>
-          </div>
-        </Card>
+          </Card>
 
-        {/* Right Column: Audio Design Settings Card */}
-        <Card className="flex flex-col justify-between p-6 space-y-6">
-          <div className="space-y-5">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-indigo-400" />
-                <span>Audio Scoring Engines</span>
-              </CardTitle>
-              <CardDescription>Fine-tune detection triggers and gain levels</CardDescription>
-            </div>
+          {/* Card 2: Script Input with 2 Segmented Options */}
+          <Card className="p-5 flex flex-col justify-between space-y-4 border-white/[0.08]">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-violet-400" />
+                  <span>2. Narration Script</span>
+                </CardTitle>
 
-            {/* Feature Switches */}
-            <div className="grid grid-cols-2 gap-3.5">
-              {[
-                { key: "music_enabled", label: "Background Music", icon: "🎵" },
-                { key: "sfx_enabled", label: "Sound Effects", icon: "💥" },
-                { key: "silence_drops", label: "Silence Drops", icon: "🔇" },
-                { key: "hook_detection", label: "Hook Risers", icon: "⚡" },
-                { key: "reveal_detection", label: "Reveal Hits", icon: "🔊" },
-                { key: "stage_detection", label: "Scene Swipes", icon: "💨" },
-              ].map(({ key, label, icon }) => (
-                <div
-                  key={key}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5"
+                {/* Sample script button */}
+                {scriptMode === "upload" && !srtFile && (
+                  <button
+                    type="button"
+                    onClick={loadSampleScript}
+                    className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
+                  >
+                    <Zap className="w-3 h-3 text-amber-400" /> Load Demo Script
+                  </button>
+                )}
+              </div>
+
+              {/* Segmented Mode Switcher */}
+              <div className="grid grid-cols-2 p-1 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setScriptMode("upload")}
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    scriptMode === "upload"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
                 >
-                  <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <span>{icon}</span> {label}
-                  </span>
-                  <Switch
-                    checked={settings[key as keyof Settings] as boolean}
-                    onCheckedChange={(checked) => updateSetting(key as keyof Settings, checked)}
+                  Upload Script (.srt / .vtt)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScriptMode("transcribe")}
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    scriptMode === "transcribe"
+                      ? "bg-violet-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  Auto Transcribe (Whisper)
+                </button>
+              </div>
+
+              {/* Option 1: SRT Upload */}
+              {scriptMode === "upload" ? (
+                <>
+                  <input
+                    ref={srtInputRef}
+                    type="file"
+                    accept=".srt,.vtt"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleSrtSelect(e.target.files[0])}
                   />
-                </div>
-              ))}
-            </div>
 
-            {/* Sliders */}
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 font-semibold">Music Volume Presence</span>
-                  <Badge variant="violet" className="font-mono text-[11px]">
-                    {Math.round(settings.music_intensity * 100)}%
-                  </Badge>
-                </div>
-                <Slider
-                  value={[settings.music_intensity * 100]}
-                  max={100}
-                  step={1}
-                  onValueChange={(val) => updateSetting("music_intensity", val[0] / 100)}
-                />
-              </div>
+                  <div
+                    onClick={() => !srtFile && srtInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setSrtDrag(true); }}
+                    onDragLeave={() => setSrtDrag(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setSrtDrag(false);
+                      if (e.dataTransfer.files[0]) handleSrtSelect(e.dataTransfer.files[0]);
+                    }}
+                    className={`p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 min-h-[180px] ${
+                      srtDrag
+                        ? "border-violet-500 bg-violet-500/10"
+                        : srtFile
+                        ? "border-violet-500/40 bg-violet-500/5 shadow-inner"
+                        : "border-white/10 hover:border-white/20 bg-white/[0.02]"
+                    }`}
+                  >
+                    {srtFile ? (
+                      <div className="w-full flex items-center justify-between gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-300 flex-shrink-0">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="text-sm font-bold text-white truncate">{srtFile.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="violet" className="text-[9px] font-mono">
+                              {formatBytes(srtFile.size)}
+                            </Badge>
+                            {captionCount && (
+                              <Badge variant="success" className="text-[9px] font-mono">
+                                {captionCount} Captions Ready
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSrtFile(null);
+                            setCaptionCount(null);
+                          }}
+                          className="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors"
+                          title="Remove file"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-200">Drop your subtitle file (.srt / .vtt)</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Captions for AI narrative structure analysis</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              ) : (
+                /* Option 2: Faster-Whisper Auto Transcription */
+                <div className="p-6 rounded-2xl bg-violet-950/20 border border-violet-500/25 flex flex-col justify-center gap-3 min-h-[180px]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center text-violet-300">
+                        <Mic className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-100">
+                          On-Device Faster-Whisper
+                        </p>
+                        <p className="text-[10px] text-slate-400 font-mono">
+                          model: medium/large-v3 • privacy guaranteed
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="violet" className="text-[10px] font-mono">
+                      AUTO STT
+                    </Badge>
+                  </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 font-semibold">SFX Dynamic Power</span>
-                  <Badge variant="default" className="font-mono text-[11px]">
-                    {Math.round(settings.sfx_intensity * 100)}%
-                  </Badge>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    AutoAudio will extract the audio channel from your video and automatically generate timestamps and text transcriptions locally.
+                  </p>
+
+                  <div className="pt-1 flex items-center justify-center opacity-60">
+                    <WaveformVisualizer seed="whisper_active" bars={48} height={20} color="#a78bfa" />
+                  </div>
                 </div>
-                <Slider
-                  value={[settings.sfx_intensity * 100]}
-                  max={100}
-                  step={1}
-                  onValueChange={(val) => updateSetting("sfx_intensity", val[0] / 100)}
-                />
-              </div>
+              )}
             </div>
+          </Card>
+        </div>
+
+        {/* Row 2: Sound Design Style Profiles */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              3. Sound Design Style Profiles
+            </span>
+            <span className="text-xs text-slate-500">Auto-tunes dynamic triggers and music presence</span>
           </div>
-        </Card>
 
-        {/* Full-Width Action Button & Progress */}
-        <div className="md:col-span-2 space-y-4 pt-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+            {PRESETS.map((p) => {
+              const isSelected = activePreset === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => handlePresetSelect(p.id)}
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer select-none space-y-2 ${
+                    isSelected
+                      ? "bg-indigo-600/15 border-indigo-500/50 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500"
+                      : "bg-white/[0.02] border-white/[0.08] hover:bg-white/[0.05] hover:border-white/15"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-slate-100">{p.name}</p>
+                    {isSelected && <Check className="w-4 h-4 text-indigo-400" />}
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-snug">{p.desc}</p>
+
+                  <div className="pt-1 space-y-1 font-mono text-[10px] text-slate-400">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Music</span>
+                      <span className="text-violet-300 font-bold">{p.musicBar}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">SFX</span>
+                      <span className="text-indigo-300 font-bold">{p.sfxBar}</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Row 3: Action Button & AI Progress Indicator */}
+        <div className="space-y-4 pt-2">
           {error && (
             <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300 flex items-center gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -526,11 +645,17 @@ And in the end... that is why the real story remains hidden.
             </div>
           )}
 
-          {/* Progress bar */}
           {(status === "uploading" || status === "analyzing") && (
-            <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2">
-              <div className="flex justify-between text-xs font-semibold text-slate-300">
-                <span>{status === "uploading" ? "Uploading video and script..." : "Scoring sound design with AI..."}</span>
+            <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+              <div className="flex justify-between text-xs font-semibold text-slate-200">
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-400 animate-spin" />
+                  <span>
+                    {status === "uploading"
+                      ? "Uploading media & streaming to audio engine..."
+                      : "AI analyzing narrative beats & placing sound design..."}
+                  </span>
+                </span>
                 <span className="font-mono text-indigo-400">{progress}%</span>
               </div>
               <div className="h-2 rounded-full bg-white/10 overflow-hidden">
@@ -547,24 +672,26 @@ And in the end... that is why the real story remains hidden.
             size="lg"
             onClick={handleAnalyze}
             disabled={!canAnalyze || status === "uploading" || status === "analyzing"}
-            className="w-full h-14 text-base font-bold shadow-xl shadow-indigo-500/20 cursor-pointer"
+            className="w-full h-14 text-base font-bold shadow-2xl shadow-indigo-500/25 cursor-pointer"
           >
             {status === "uploading" || status === "analyzing" ? (
               <>
                 <span className="spinner mr-2" style={{ width: 18, height: 18 }} />
-                <span>{status === "uploading" ? "Uploading Media..." : "Building Sound Design Timeline..."}</span>
+                <span>Building Sound Design Timeline...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5 mr-1" />
-                <span>Analyze & Score Sound Design</span>
+                <Sparkles className="w-5 h-5 mr-1.5" />
+                <span>Generate Sound Design</span>
               </>
             )}
           </Button>
 
           {!canAnalyze && (
             <p className="text-center text-xs text-slate-500">
-              {!videoFile ? "Drop a video file to begin" : "Add a subtitle file (.srt) or enable auto-transcribe"}
+              {!videoFile
+                ? "Drop a video file to begin"
+                : "Add a subtitle file (.srt) or select Auto Transcribe"}
             </p>
           )}
         </div>
