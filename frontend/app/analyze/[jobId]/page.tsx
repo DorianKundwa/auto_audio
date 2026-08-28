@@ -202,7 +202,7 @@ export default function StudioPage() {
   // Loading Screen
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#08090f] text-slate-400">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#1E1E1E] text-[#858585]">
         <div className="spinner" style={{ width: 44, height: 44, borderWidth: 3 }} />
         <p className="text-sm font-medium">Opening Audio Studio Workspace...</p>
       </div>
@@ -210,7 +210,7 @@ export default function StudioPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#08090f] text-slate-100 select-none">
+    <main className="min-h-screen flex flex-col bg-[#1E1E1E] text-[#CCCCCC] select-none">
       {/* ── Studio Top Toolbar ── */}
       <StudioHeader
         jobId={jobId}
@@ -228,9 +228,9 @@ export default function StudioPage() {
         isExporting={exportStage !== "idle" && exportStage !== "completed" && exportStage !== "error"}
       />
 
-      {/* ── Studio Center Work Area: Video Preview + Inspector ── */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-hidden">
-        {/* Left 7 Columns: Video Player */}
+      {/* ── 3-Pane NLE Standard Layout: Top Left Video, Top Right Inspector, Bottom Timeline ── */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 p-5 overflow-hidden">
+        {/* Top Left: Video Player */}
         <div className="lg:col-span-7 flex flex-col gap-3">
           <VideoPreview
             videoRef={videoRef}
@@ -257,7 +257,7 @@ export default function StudioPage() {
           />
         </div>
 
-        {/* Right 5 Columns: Inspector Panel */}
+        {/* Top Right: Inspector Panel */}
         <div className="lg:col-span-5 flex flex-col overflow-hidden max-h-[500px]">
           <Inspector
             selectedEvent={selectedEvent}
@@ -286,7 +286,7 @@ export default function StudioPage() {
       </div>
 
       {/* ── Transport Controls Bar ── */}
-      <div className="px-6 pb-2">
+      <div className="px-5 pb-2">
         <TransportControls
           isPlaying={isPlaying}
           currentTime={currentTime}
@@ -300,8 +300,8 @@ export default function StudioPage() {
         />
       </div>
 
-      {/* ── Bottom DAW Multi-Track Timeline ── */}
-      <div className="px-6 pb-6">
+      {/* ── Bottom: Full-Width Timeline Spanning Entire Screen Width ── */}
+      <div className="px-5 pb-5">
         <Timeline
           events={events}
           analyzedSegments={timeline?.analyzed_segments || []}

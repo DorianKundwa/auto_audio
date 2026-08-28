@@ -101,11 +101,17 @@ export function SFXClip({
         className="opacity-75 flex-shrink-0"
       />
 
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-bold tracking-tight truncate leading-tight">
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <p
+          className="text-[11px] font-bold tracking-tight text-[#E0E0E0] truncate leading-tight"
+          style={{ textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}
+        >
           {event.label}
         </p>
-        <span className="text-[9px] font-mono opacity-80 block leading-none">
+        <span
+          className="text-[9px] font-mono opacity-80 block leading-none truncate"
+          style={{ textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}
+        >
           {formatSec(event.timestamp)} • {Math.round(event.volume * 100)}%
         </span>
       </div>

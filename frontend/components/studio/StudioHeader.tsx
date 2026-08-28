@@ -43,19 +43,19 @@ export function StudioHeader({
   const router = useRouter();
 
   return (
-    <header className="h-14 px-6 flex items-center justify-between border-b border-white/[0.08] bg-[#090b14]/90 backdrop-blur-xl sticky top-0 z-40">
+    <header className="h-13 px-6 flex items-center justify-between border-b border-[#3E3E42] bg-[#252528] sticky top-0 z-40">
       {/* Left: Navigation & Branding */}
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.push("/")}
-          className="h-8 px-2.5 text-xs text-slate-400 hover:text-white"
+          className="h-8 px-2.5 text-xs text-[#CCCCCC] hover:text-white hover:bg-white/[0.06]"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1.5" /> New Project
         </Button>
 
-        <div className="h-4 w-px bg-white/10" />
+        <div className="h-4 w-px bg-[#3E3E42]" />
 
         <div className="flex items-center gap-2.5">
           <span
@@ -66,7 +66,7 @@ export function StudioHeader({
           </span>
           <Badge
             variant="secondary"
-            className="text-[10px] font-mono px-2 py-0.5 uppercase bg-white/5 border-white/10"
+            className="text-[10px] font-mono px-2 py-0.5 uppercase bg-[#1E1E1E] border-[#3E3E42] text-[#CCCCCC]"
           >
             {jobId.slice(0, 8)}
           </Badge>
@@ -76,7 +76,7 @@ export function StudioHeader({
         <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] text-indigo-300 font-medium">
           <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
           <span>
-            {segmentsCount} beats analyzed • {sfxCount} SFX placed • Score synced
+            {segmentsCount} cues analyzed • {sfxCount} SFX placed • Score synced
           </span>
         </div>
       </div>
@@ -84,16 +84,16 @@ export function StudioHeader({
       {/* Right: Studio Controls & Actions */}
       <div className="flex items-center gap-3">
         {/* Track Mute Toggles */}
-        <div className="flex items-center gap-4 bg-white/[0.04] px-3 py-1 rounded-xl border border-white/[0.08] text-xs">
-          <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+        <div className="flex items-center gap-4 bg-[#1E1E1E] px-3 py-1 rounded-lg border border-[#3E3E42] text-xs">
+          <label className="flex items-center gap-2 cursor-pointer text-[#CCCCCC] hover:text-white select-none">
             <Switch
               checked={musicEnabled}
               onCheckedChange={onToggleMusic}
             />
             <span className="font-medium text-[11px]">Music</span>
           </label>
-          <div className="h-3.5 w-px bg-white/10" />
-          <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+          <div className="h-3.5 w-px bg-[#3E3E42]" />
+          <label className="flex items-center gap-2 cursor-pointer text-[#CCCCCC] hover:text-white select-none">
             <Switch
               checked={sfxEnabled}
               onCheckedChange={onToggleSFX}
@@ -107,7 +107,7 @@ export function StudioHeader({
           variant="outline"
           size="sm"
           onClick={onOpenLibrary}
-          className="h-8 text-xs font-semibold"
+          className="h-8 text-xs font-semibold bg-[#2D2D30] border-[#3E3E42] text-[#CCCCCC] hover:text-white hover:bg-[#38383C]"
         >
           <FolderPlus className="w-3.5 h-3.5 mr-1.5 text-indigo-400" /> Sound Library
         </Button>
@@ -118,7 +118,7 @@ export function StudioHeader({
           size="sm"
           onClick={onOpenExport}
           disabled={isExporting}
-          className="h-8 text-xs font-semibold px-4 shadow-lg shadow-indigo-500/20"
+          className="h-8 text-xs font-semibold px-4 shadow-md bg-indigo-600 hover:bg-indigo-500 text-white"
         >
           <Download className="w-3.5 h-3.5 mr-1.5" />
           <span>Export Video</span>

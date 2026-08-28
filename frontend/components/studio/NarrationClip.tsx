@@ -64,7 +64,10 @@ export function NarrationClip({
         className="flex-shrink-0"
       />
 
-      <span className="text-[10px] font-medium text-slate-200 truncate leading-tight">
+      <span
+        className="text-[10px] font-medium text-[#CCCCCC] truncate leading-tight flex-1 min-w-0"
+        style={{ textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}
+      >
         {segment.text}
       </span>
     </div>

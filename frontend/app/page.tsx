@@ -291,12 +291,12 @@ And in the end... that is why the real story remains hidden.
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#08090f] text-slate-100 select-none">
+    <main className="min-h-screen flex flex-col bg-[#1E1E1E] text-[#CCCCCC] select-none">
       {/* ── Studio Top Bar ── */}
-      <header className="h-14 px-8 flex items-center justify-between border-b border-white/[0.08] bg-[#090b14]/80 backdrop-blur-xl sticky top-0 z-30">
+      <header className="h-13 px-8 flex items-center justify-between border-b border-[#3E3E42] bg-[#252528] sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 p-[1px] shadow-lg shadow-indigo-500/20">
-            <div className="w-full h-full bg-[#0d0f1a] rounded-[11px] flex items-center justify-center text-xs font-bold text-indigo-400">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 p-[1px] shadow-md shadow-indigo-500/20">
+            <div className="w-full h-full bg-[#1E1E1E] rounded-[11px] flex items-center justify-center text-xs font-bold text-indigo-400">
               ⚡
             </div>
           </div>
@@ -307,7 +307,7 @@ And in the end... that is why the real story remains hidden.
             >
               Auto<span className="text-indigo-400">Audio</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase block -mt-1">
+            <span className="text-[10px] text-[#858585] font-semibold tracking-wider uppercase block -mt-1">
               Creative Studio Workstation
             </span>
           </div>
@@ -315,7 +315,7 @@ And in the end... that is why the real story remains hidden.
 
         <Badge
           variant={backendOk ? "success" : backendOk === false ? "destructive" : "secondary"}
-          className="gap-2 px-3 py-1 text-xs"
+          className="gap-2 px-3 py-1 text-xs bg-[#1E1E1E] border-[#3E3E42]"
         >
           <span
             className={`w-2 h-2 rounded-full ${
@@ -328,7 +328,7 @@ And in the end... that is why the real story remains hidden.
 
       {/* ── Hero Title Section ── */}
       <section className="px-6 pt-10 pb-6 text-center max-w-3xl mx-auto space-y-3">
-        <Badge variant="default" className="gap-1.5 px-3 py-0.5 font-medium shadow-sm">
+        <Badge variant="default" className="gap-1.5 px-3 py-0.5 font-medium shadow-xs">
           <Sparkles className="w-3 h-3" /> Professional Creative Audio Workstation
         </Badge>
         <h1
@@ -337,7 +337,7 @@ And in the end... that is why the real story remains hidden.
         >
           Give your video a soundtrack.
         </h1>
-        <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
+        <p className="text-[#CCCCCC] text-sm md:text-base max-w-xl mx-auto leading-relaxed">
           AutoAudio analyzes your narration and automatically places music, impacts, risers, transitions and atmosphere exactly where they belong.
         </p>
       </section>

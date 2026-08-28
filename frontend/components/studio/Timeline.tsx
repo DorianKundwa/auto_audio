@@ -7,7 +7,7 @@ import { TimelineRuler } from "./TimelineRuler";
 import { SFXClip } from "./SFXClip";
 import { NarrationClip } from "./NarrationClip";
 import { MusicTrack } from "./MusicTrack";
-import { Mic, Sparkles, Music, Volume2, VolumeX, Eye } from "lucide-react";
+import { Mic, Sparkles, Music } from "lucide-react";
 
 interface TimelineProps {
   events: SFXEvent[];
@@ -67,45 +67,45 @@ export function Timeline({
   const playheadPercent = videoDuration > 0 ? (currentTime / videoDuration) * 100 : 0;
 
   return (
-    <div className="flex rounded-2xl bg-[#090b14] border border-white/[0.08] overflow-hidden shadow-2xl select-none">
-      {/* ── Fixed Track Headers Column (Left 140px) ── */}
-      <div className="w-36 min-w-[144px] bg-[#0c0e1a] border-r border-white/[0.08] flex flex-col z-20 flex-shrink-0">
-        {/* Top Ruler Placeholder Header */}
-        <div className="h-7 border-b border-white/[0.08] px-3 flex items-center text-[10px] font-mono uppercase font-bold text-slate-500 bg-[#090b14]">
+    <div className="flex rounded-xl bg-[#1E1E1E] border border-[#3E3E42] overflow-hidden shadow-2xl select-none">
+      {/* ── Fixed Track Headers Column (Sticky Left 144px) ── */}
+      <div className="w-36 min-w-[144px] bg-[#252528] border-r border-[#3E3E42] flex flex-col z-25 sticky left-0 flex-shrink-0">
+        {/* Top Ruler Header Placeholder */}
+        <div className="h-7 border-b border-[#3E3E42] px-3 flex items-center text-[10px] font-mono uppercase font-bold text-[#858585] bg-[#202023]">
           Tracks
         </div>
 
-        {/* Track 1 Header: Narration */}
-        <div className="h-14 px-3 flex items-center justify-between border-b border-white/[0.05] bg-[#0c0e1a]">
-          <div>
-            <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
-              <Mic className="w-3.5 h-3.5 text-violet-400" /> Speech
+        {/* Track 1 Header: Speech */}
+        <div className="h-14 px-3 flex items-center justify-between border-b border-[#3E3E42] bg-[#252528]">
+          <div className="min-w-0">
+            <span className="text-[11px] font-bold text-[#CCCCCC] flex items-center gap-1.5 truncate">
+              <Mic className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" /> Speech
             </span>
-            <span className="text-[9px] font-mono text-slate-500 block leading-tight">
-              {analyzedSegments.length} captions
+            <span className="text-[9px] font-mono text-[#858585] block truncate leading-tight">
+              {analyzedSegments.length} cues
             </span>
           </div>
         </div>
 
         {/* Track 2 Header: Sound FX */}
-        <div className="h-16 px-3 flex items-center justify-between border-b border-white/[0.05] bg-[#0c0e1a]">
-          <div>
-            <span className="text-[11px] font-bold text-indigo-300 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Sound FX
+        <div className="h-16 px-3 flex items-center justify-between border-b border-[#3E3E42] bg-[#252528]">
+          <div className="min-w-0">
+            <span className="text-[11px] font-bold text-indigo-300 flex items-center gap-1.5 truncate">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" /> Sound FX
             </span>
-            <span className="text-[9px] font-mono text-slate-500 block leading-tight">
+            <span className="text-[9px] font-mono text-[#858585] block truncate leading-tight">
               {events.length} clips
             </span>
           </div>
         </div>
 
         {/* Track 3 Header: Ambient Score */}
-        <div className="h-14 px-3 flex items-center justify-between bg-[#0c0e1a]">
-          <div>
-            <span className="text-[11px] font-bold text-violet-300 flex items-center gap-1.5">
-              <Music className="w-3.5 h-3.5 text-violet-400" /> Music Bed
+        <div className="h-14 px-3 flex items-center justify-between bg-[#252528]">
+          <div className="min-w-0">
+            <span className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5 truncate">
+              <Music className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" /> Music Bed
             </span>
-            <span className="text-[9px] font-mono text-slate-500 block leading-tight">
+            <span className="text-[9px] font-mono text-[#858585] block truncate leading-tight">
               {musicConfig ? musicConfig.mood : "None"}
             </span>
           </div>
@@ -129,13 +129,13 @@ export function Timeline({
 
           {/* Continuous Vertical Playhead Line Across All Tracks */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-red-500 shadow-[0_0_10px_#ef4444] pointer-events-none z-30 transition-transform duration-75"
+            className="absolute top-0 bottom-0 w-0.5 bg-red-500 shadow-[0_0_8px_#ef4444] pointer-events-none z-30 transition-transform duration-75"
             style={{ left: `${playheadPercent}%` }}
           />
 
-          {/* Track 1 Lane: Narration Subtitle Blocks */}
+          {/* Track 1 Lane: Speech Subtitle Blocks (Muted Teal Background) */}
           <div
-            className="h-14 relative border-b border-white/[0.05] bg-[#080912] cursor-pointer"
+            className="h-14 relative border-b border-[#3E3E42] bg-[#1e262b] cursor-pointer"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const seekTime = ((e.clientX - rect.left) / rect.width) * videoDuration;
@@ -153,9 +153,9 @@ export function Timeline({
             ))}
           </div>
 
-          {/* Track 2 Lane: SFX Event Clips */}
+          {/* Track 2 Lane: SFX Clips (Muted Indigo Background) */}
           <div
-            className="h-16 relative border-b border-white/[0.05] bg-[#0a0c16] cursor-pointer"
+            className="h-16 relative border-b border-[#3E3E42] bg-[#262230] cursor-pointer"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const seekTime = ((e.clientX - rect.left) / rect.width) * videoDuration;
@@ -176,9 +176,9 @@ export function Timeline({
               ))}
           </div>
 
-          {/* Track 3 Lane: Looping Ambient Music Bed */}
+          {/* Track 3 Lane: Looping Ambient Music Bed (Muted Orange Background) */}
           <div
-            className="h-14 relative bg-[#080912] cursor-pointer"
+            className="h-14 relative bg-[#2b251e] cursor-pointer"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const seekTime = ((e.clientX - rect.left) / rect.width) * videoDuration;
