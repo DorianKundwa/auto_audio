@@ -47,16 +47,19 @@ async def render_video(
 
     print(f"[renderer] Running FFmpeg:\n  {' '.join(cmd)}")
 
-    proc = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate()
+    def _run_ffmpeg():
+        return subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
-    if proc.returncode != 0:
-        err = stderr.decode(errors="replace")
-        raise RuntimeError(f"FFmpeg failed (code {proc.returncode}):\n{err}")
+    loop = asyncio.get_event_loop()
+    res = await loop.run_in_executor(None, _run_ffmpeg)
+
+    if res.returncode != 0:
+        err = res.stderr.decode(errors="replace")
+        raise RuntimeError(f"FFmpeg failed (code {res.returncode}):\n{err}")
 
     return output_path
 
