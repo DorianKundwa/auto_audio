@@ -175,6 +175,7 @@ def main():
         
         frontend_env = os.environ.copy()
         frontend_env["BACKEND_URL"] = backend_url
+        frontend_env["NEXT_PUBLIC_BACKEND_URL"] = backend_url
         frontend_env["PORT"] = str(frontend_port)
 
         frontend_proc = subprocess.Popen(

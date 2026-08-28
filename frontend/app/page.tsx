@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "./lib/api";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface Settings {
@@ -287,7 +288,7 @@ export default function UploadPage() {
   // Check backend health on mount and every 10s
   useEffect(() => {
     const checkHealth = () => {
-      fetch("/api/health")
+      fetch(apiUrl("/api/health"))
         .then((r) => r.ok && r.json())
         .then((d) => setBackendOk(!!d?.status))
         .catch(() => setBackendOk(false));
@@ -348,7 +349,7 @@ And in the end... that is why the real story remains hidden.
       form.append("video", videoFile);
       if (srtFile) form.append("srt", srtFile);
 
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: form });
+      const uploadRes = await fetch(apiUrl("/api/upload"), { method: "POST", body: form });
       if (!uploadRes.ok) {
         const err = await uploadRes.json().catch(() => ({ detail: "Upload failed" }));
         throw new Error(err.detail ?? "Upload failed");
@@ -358,7 +359,7 @@ And in the end... that is why the real story remains hidden.
 
       // 2. Analyze
       setStatus("analyzing");
-      const analyzeRes = await fetch(`/api/analyze/${job_id}`, {
+      const analyzeRes = await fetch(apiUrl(`/api/analyze/${job_id}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),

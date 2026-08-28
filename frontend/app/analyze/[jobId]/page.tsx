@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "../../lib/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface SFXEvent {
@@ -107,9 +108,9 @@ function toWebAssetUrl(localPath: string): string {
   const normalized = localPath.replace(/\\/g, "/");
   const idx = normalized.indexOf("assets/");
   if (idx !== -1) {
-    return "/" + normalized.slice(idx);
+    return apiUrl("/" + normalized.slice(idx));
   }
-  return localPath;
+  return apiUrl(localPath);
 }
 
 // ── SFX Row Component ─────────────────────────────────────────────────────────
@@ -245,7 +246,7 @@ export default function AnalyzePage({
 
   // Load timeline from API
   useEffect(() => {
-    fetch(`/api/analyze/${jobId}`)
+    fetch(apiUrl(`/api/analyze/${jobId}`))
       .then((r) => {
         if (!r.ok) throw new Error("Timeline not found");
         return r.json();
@@ -264,7 +265,7 @@ export default function AnalyzePage({
 
   // Load SFX library catalog for modal
   useEffect(() => {
-    fetch("/api/library/sfx")
+    fetch(apiUrl("/api/library/sfx"))
       .then((r) => r.ok && r.json())
       .then((data) => data && setLibrary(data))
       .catch(() => {});
@@ -378,7 +379,7 @@ export default function AnalyzePage({
         setExportProgress((p) => Math.min(p + 6, 88));
       }, 1000);
 
-      const res = await fetch(`/api/export/${jobId}`, {
+      const res = await fetch(apiUrl(`/api/export/${jobId}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

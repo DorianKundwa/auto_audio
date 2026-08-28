@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
+import path from "path";
 
-const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
+const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
   allowedDevOrigins: [
     "127.0.0.1",
     "localhost",
@@ -12,6 +16,8 @@ const nextConfig: NextConfig = {
     "localhost:3001",
     "127.0.0.1:3002",
     "localhost:3002",
+    "127.0.0.1:8000",
+    "localhost:8000",
   ],
   async rewrites() {
     return [
