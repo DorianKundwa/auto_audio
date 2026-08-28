@@ -1,0 +1,182 @@
+[
+  {
+    "filename": "dark_documentary_01_real.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 2.33,
+    "placeholder": false,
+    "source": "08 Rewinding.wav"
+  },
+  {
+    "filename": "dark_documentary_02_real.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 131.15,
+    "placeholder": false,
+    "source": "AMBMisc_Quiet Street Cold Night, Wind In The Trees, Cat, St_ASD.wav"
+  },
+  {
+    "filename": "dark_documentary_03_real.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 23.91,
+    "placeholder": false,
+    "source": "BOATMech_Crank Mechanism, Sailing Boat, Short, X6, Rope Winch, Exterior, Wind, L"
+  },
+  {
+    "filename": "dark_documentary_04_real.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 2.41,
+    "placeholder": false,
+    "source": "CREAEthr_Creature Ghost Banshee, Scream, High Pitch 01_ASD.wav"
+  },
+  {
+    "filename": "dark_documentary_05_real.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 92.95,
+    "placeholder": false,
+    "source": "CREAEthr_Creature Ghost Group Of Ghost, Breathe, Moaning, Whisper, Creepy, Dista"
+  },
+  {
+    "filename": "dark_documentary_06_real.wav",
+    "folder": "dark_documentary",
+    "moods": [
+      "dark_documentary"
+    ],
+    "duration": 36.81,
+    "placeholder": false,
+    "source": "CRWDBatl_Yelling Exterior, Crowd, Soldiers In War Field, Battlefield, Men, Yelli"
+  },
+  {
+    "filename": "mysterious_01_real.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 100.67,
+    "placeholder": false,
+    "source": "AMBSea_Marina Exterior, Pier 39, Port, Harbor Ambiance, Water Splashing, Wood Cr"
+  },
+  {
+    "filename": "mysterious_02_real.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 8.21,
+    "placeholder": false,
+    "source": "BIRDFowl_Bird Goose, Scream, Intense, Single, Isolated, Parc Safari, Canada, Seq"
+  },
+  {
+    "filename": "mysterious_03_real.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 5.26,
+    "placeholder": false,
+    "source": "CREADino_Mosasaurus, Aggro 01, Full Alternate_ASD_Extinct.wav"
+  },
+  {
+    "filename": "mysterious_04_real.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 5.26,
+    "placeholder": false,
+    "source": "CREADino_Mosasaurus, Aggro 01, Full_ASD_Extinct.wav"
+  },
+  {
+    "filename": "mysterious_05_real.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 5.26,
+    "placeholder": false,
+    "source": "CREADino_Mosasaurus, Aggro 01, Layer A_ASD_Extinct.wav"
+  },
+  {
+    "filename": "mysterious_06_real.wav",
+    "folder": "mysterious",
+    "moods": [
+      "mysterious"
+    ],
+    "duration": 5.26,
+    "placeholder": false,
+    "source": "CREADino_Mosasaurus, Aggro 01, Layer B_ASD_Extinct.wav"
+  },
+  {
+    "filename": "upbeat_01_real.wav",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 25.73,
+    "placeholder": false,
+    "source": "Applause.wav"
+  },
+  {
+    "filename": "upbeat_02_real.wav",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 1.9,
+    "placeholder": false,
+    "source": "Apple Notification.wav"
+  },
+  {
+    "filename": "upbeat_03_real.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 4.44,
+    "placeholder": false,
+    "source": "Ascending sound effect.mp3"
+  },
+  {
+    "filename": "upbeat_04_real.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 3.13,
+    "placeholder": false,
+    "source": "Cash Register (Kaching) - Sound Effect (HD).mp3"
+  },
+  {
+    "filename": "upbeat_05_real.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 2.35,
+    "placeholder": false,
+    "source": "Cash Register sounds effects No Copyright free use.mp3"
+  },
+  {
+    "filename": "upbeat_06_real.mp3",
+    "folder": "upbeat",
+    "moods": [
+      "upbeat"
+    ],
+    "duration": 3.07,
+    "placeholder": false,
+    "source": "Cash Register.mp3"
+  }
+]

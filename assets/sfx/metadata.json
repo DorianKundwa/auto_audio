@@ -1,0 +1,365 @@
+[
+  {
+    "filename": "riser_01_real.wav",
+    "type": "riser",
+    "intensity": 0.58,
+    "duration": 21.33,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "01 Beating.wav"
+  },
+  {
+    "filename": "riser_02_real.wav",
+    "type": "riser",
+    "intensity": 0.66,
+    "duration": 11.04,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "10 Evolve_Riser Robo Drums.wav"
+  },
+  {
+    "filename": "riser_03_real.mp3",
+    "type": "riser",
+    "intensity": 0.74,
+    "duration": 4.44,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Ascending sound effect.mp3"
+  },
+  {
+    "filename": "riser_04_real.mp3",
+    "type": "riser",
+    "intensity": 0.82,
+    "duration": 1.92,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "BUILD-UP.mp3"
+  },
+  {
+    "filename": "riser_05_real.mp3",
+    "type": "riser",
+    "intensity": 0.9,
+    "duration": 2.93,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "ES_Riser Suction 5 - SFX Producer.mp3"
+  },
+  {
+    "filename": "boom_01_real.wav",
+    "type": "boom",
+    "intensity": 0.58,
+    "duration": 6.5,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "01 Boom.wav"
+  },
+  {
+    "filename": "boom_02_real.wav",
+    "type": "boom",
+    "intensity": 0.66,
+    "duration": 10.32,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "01 Evolve_Brassy Swell.wav"
+  },
+  {
+    "filename": "boom_03_real.wav",
+    "type": "boom",
+    "intensity": 0.74,
+    "duration": 5.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "02 Deep.wav"
+  },
+  {
+    "filename": "boom_04_real.wav",
+    "type": "boom",
+    "intensity": 0.82,
+    "duration": 13.33,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "02 Evolve_Brassy Drop.2.wav"
+  },
+  {
+    "filename": "boom_05_real.wav",
+    "type": "boom",
+    "intensity": 0.9,
+    "duration": 8.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "03 Evolve_Boom Brass D.wav"
+  },
+  {
+    "filename": "glitch_01_real.wav",
+    "type": "glitch",
+    "intensity": 0.58,
+    "duration": 1.78,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "01 Processing.wav"
+  },
+  {
+    "filename": "glitch_02_real.wav",
+    "type": "glitch",
+    "intensity": 0.66,
+    "duration": 3.69,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "02 Dial-up.wav"
+  },
+  {
+    "filename": "glitch_03_real.wav",
+    "type": "glitch",
+    "intensity": 0.74,
+    "duration": 2.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "04 Erased Data.wav"
+  },
+  {
+    "filename": "glitch_04_real.wav",
+    "type": "glitch",
+    "intensity": 0.82,
+    "duration": 7.38,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "05 Reboot Failure.wav"
+  },
+  {
+    "filename": "glitch_05_real.wav",
+    "type": "glitch",
+    "intensity": 0.9,
+    "duration": 2.33,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "06 Portal Hop.wav"
+  },
+  {
+    "filename": "impact_01_real.wav",
+    "type": "impact",
+    "intensity": 0.58,
+    "duration": 5.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "05 Impact.wav"
+  },
+  {
+    "filename": "impact_02_real.wav",
+    "type": "impact",
+    "intensity": 0.66,
+    "duration": 6.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "07 Subsonic A.wav"
+  },
+  {
+    "filename": "impact_03_real.wav",
+    "type": "impact",
+    "intensity": 0.74,
+    "duration": 6.5,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "08 Subsonic B.wav.wav"
+  },
+  {
+    "filename": "impact_04_real.wav",
+    "type": "impact",
+    "intensity": 0.82,
+    "duration": 3.75,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "09 Struck Down.wav"
+  },
+  {
+    "filename": "impact_05_real.wav",
+    "type": "impact",
+    "intensity": 0.9,
+    "duration": 11.65,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "10 Dark Drop.wav"
+  },
+  {
+    "filename": "transition_01_real.wav",
+    "type": "transition",
+    "intensity": 0.58,
+    "duration": 1.0,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "29 Swing A.wav"
+  },
+  {
+    "filename": "transition_02_real.mp3",
+    "type": "transition",
+    "intensity": 0.66,
+    "duration": 2.76,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Fast Forward Sound Effect(MP3_160K).mp3"
+  },
+  {
+    "filename": "transition_03_real.wav",
+    "type": "transition",
+    "intensity": 0.74,
+    "duration": 21.71,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "projector-spinning-1444.wav"
+  },
+  {
+    "filename": "whoosh_01_real.mp3",
+    "type": "whoosh",
+    "intensity": 0.58,
+    "duration": 1.2,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "ES_Jump Swish - SFX Producer.mp3"
+  },
+  {
+    "filename": "whoosh_02_real.mp3",
+    "type": "whoosh",
+    "intensity": 0.66,
+    "duration": 1.91,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Fast Whoosh Sound Effect.mp3"
+  },
+  {
+    "filename": "whoosh_03_real.mp3",
+    "type": "whoosh",
+    "intensity": 0.74,
+    "duration": 0.89,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Lens flare transition sound effect.mp3"
+  },
+  {
+    "filename": "whoosh_04_real.mp3",
+    "type": "whoosh",
+    "intensity": 0.82,
+    "duration": 11.02,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Long whoosh sound effect.mp3"
+  },
+  {
+    "filename": "whoosh_05_real.mp3",
+    "type": "whoosh",
+    "intensity": 0.9,
+    "duration": 2.09,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Rake Swing Whoosh Close.mp3"
+  },
+  {
+    "filename": "heartbeat_01_real.mp3",
+    "type": "heartbeat",
+    "intensity": 0.58,
+    "duration": 60.4,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Clock Tick.mp3"
+  },
+  {
+    "filename": "heartbeat_02_real.mp3",
+    "type": "heartbeat",
+    "intensity": 0.66,
+    "duration": 8.14,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Clock Ticking Sound Effect(MP3_160K).mp3"
+  },
+  {
+    "filename": "heartbeat_03_real.mp3",
+    "type": "heartbeat",
+    "intensity": 0.74,
+    "duration": 8.16,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Clock Ticking Sound Effect.mp3"
+  },
+  {
+    "filename": "heartbeat_04_real.mp3",
+    "type": "heartbeat",
+    "intensity": 0.82,
+    "duration": 13.3,
+    "mood": [
+      "real"
+    ],
+    "placeholder": false,
+    "source": "Clock ticking fast.mp3"
+  },
+  {
+    "filename": "silence_01.wav",
+    "type": "silence",
+    "intensity": 0.05,
+    "duration": 1.5,
+    "mood": [
+      "drop",
+      "silence"
+    ],
+    "placeholder": true
+  }
+]
