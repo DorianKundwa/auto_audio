@@ -15,6 +15,7 @@ import {
   Sparkles,
   Layers,
   Filter,
+  Music,
 } from "lucide-react";
 
 export interface SFXLibraryItem {
@@ -76,39 +77,39 @@ export function SoundLibraryDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs select-none">
-      <div className="w-[450px] max-w-[92vw] h-full bg-[#1E1E1E] border-l border-[#3E3E42] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+      <div className="w-[440px] max-w-[92vw] h-full bg-surface/95 backdrop-blur-xl border-l border-outline-variant/15 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         {/* Drawer Header */}
-        <div className="p-4 border-b border-[#3E3E42] flex items-center justify-between bg-[#252528]">
+        <div className="p-4 border-b border-outline-variant/10 flex items-center justify-between bg-surface-container-low">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300">
-              <FolderPlus className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+              <Music className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="font-geist text-sm font-bold text-white">
                 Sound Design Library
               </h3>
-              <p className="text-[10px] text-[#858585] font-mono">
+              <p className="text-[10px] text-on-surface-variant font-mono">
                 {library.length} studio audio assets
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#858585] hover:text-white hover:bg-white/[0.08] transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-surface-container-high transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Search & Filter Controls */}
-        <div className="p-4 space-y-3 border-b border-[#3E3E42] bg-[#252528]">
+        {/* Search & Category Pills Controls */}
+        <div className="p-4 space-y-3 border-b border-outline-variant/10 bg-surface-container-low">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#858585] pointer-events-none" />
-            <Input
-              placeholder="Search audio effects (e.g. cinematic, boom, snap)..."
+            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-on-surface-variant pointer-events-none" />
+            <input
+              placeholder="Search FX, Foley, Stems..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-8 text-xs bg-[#1E1E1E] border-[#3E3E42] text-[#CCCCCC]"
+              className="w-full bg-surface-container-lowest text-on-surface font-sans text-xs py-2 pl-9 pr-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-on-surface-variant/50 transition-shadow border border-outline-variant/10"
             />
           </div>
 
@@ -117,10 +118,10 @@ export function SoundLibraryDrawer({
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`text-[10px] px-2.5 py-1 rounded-md font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                className={`text-[10px] px-3 py-1 rounded-full font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
                   category === cat
-                    ? "bg-indigo-600 text-white shadow-xs"
-                    : "bg-[#1E1E1E] text-[#858585] hover:text-[#CCCCCC] hover:bg-[#38383C]"
+                    ? "bg-primary text-on-primary shadow-xs"
+                    : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface"
                 }`}
               >
                 {cat}
@@ -139,17 +140,17 @@ export function SoundLibraryDrawer({
             return (
               <div
                 key={idx}
-                className="p-3 rounded-lg border border-[#3E3E42] bg-[#2D2D30] hover:bg-[#38383C] transition-all flex items-center justify-between gap-3 group"
+                className="p-3 rounded-xl border border-outline-variant/10 bg-surface-container hover:bg-surface-container-high transition-all flex items-center justify-between gap-3 group"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <Button
                     variant="secondary"
                     size="icon"
                     onClick={() => onPlayPreview(path)}
-                    className={`h-8 w-8 rounded-lg flex-shrink-0 transition-colors ${
+                    className={`h-8 w-8 rounded-full flex-shrink-0 transition-all ${
                       isPreviewing
-                        ? "bg-indigo-600 text-white"
-                        : "bg-[#1E1E1E] text-indigo-300 hover:text-white hover:bg-indigo-600"
+                        ? "bg-primary text-on-primary shadow-md shadow-primary/20"
+                        : "bg-surface-container-lowest text-primary hover:bg-primary hover:text-on-primary"
                     }`}
                   >
                     {isPreviewing ? (
@@ -159,19 +160,18 @@ export function SoundLibraryDrawer({
                     )}
                   </Button>
 
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-xs font-semibold text-[#E0E0E0] truncate group-hover:text-white">
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <p className="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
                       {item.filename}
                     </p>
                     <div className="flex items-center gap-2">
-                      <Badge variant="default" className="text-[9px] font-mono uppercase px-1.5 py-0">
+                      <Badge variant="default" className="text-[8px] font-mono uppercase px-1.5 py-0 bg-primary-container/20 text-primary">
                         {item.type}
                       </Badge>
-                      <span className="text-[9px] font-mono text-[#858585]">
+                      <span className="text-[9px] font-mono text-on-surface-variant">
                         {item.duration}s
                       </span>
-                      {/* Intensity meter */}
-                      <span className="text-[9px] font-mono text-amber-400">
+                      <span className="text-[9px] font-mono text-secondary font-bold">
                         {"●".repeat(intensityDots)}{"○".repeat(5 - intensityDots)}
                       </span>
                     </div>
@@ -181,11 +181,11 @@ export function SoundLibraryDrawer({
                 <div className="flex items-center gap-2">
                   <WaveformVisualizer
                     seed={item.filename}
-                    bars={16}
-                    height={16}
+                    bars={12}
+                    height={14}
                     barWidth={1.5}
                     gap={1}
-                    color="#4f46e5"
+                    color="#c0c1ff"
                     className="opacity-40 hidden sm:block"
                   />
 
@@ -193,7 +193,7 @@ export function SoundLibraryDrawer({
                     variant="outline"
                     size="sm"
                     onClick={() => onInsertSound(item)}
-                    className="h-7 px-2.5 text-[10px] font-bold bg-[#1E1E1E] border-[#3E3E42] hover:bg-indigo-600 hover:text-white hover:border-indigo-500 text-[#CCCCCC] transition-all flex-shrink-0"
+                    className="h-7 px-2.5 text-[10px] font-bold bg-surface-container-lowest border-outline-variant/20 hover:bg-primary hover:text-on-primary hover:border-primary text-on-surface transition-all flex-shrink-0 cursor-pointer"
                   >
                     <Plus className="w-3 h-3 mr-1" /> Insert
                   </Button>
@@ -204,9 +204,9 @@ export function SoundLibraryDrawer({
         </div>
 
         {/* Drawer Footer Info */}
-        <div className="p-3 border-t border-[#3E3E42] bg-[#252528] flex items-center justify-between text-[11px] font-mono text-[#858585]">
+        <div className="p-3 border-t border-outline-variant/10 bg-surface-container-low flex items-center justify-between text-[11px] font-mono text-on-surface-variant">
           <span>Target playhead: {currentTime.toFixed(2)}s</span>
-          <span className="text-indigo-400 font-bold">{filtered.length} results</span>
+          <span className="text-primary font-bold">{filtered.length} assets available</span>
         </div>
       </div>
     </div>

@@ -1,46 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design tokens (Soft Dark NLE Palette) ────────────────────── */
+/* ── Design tokens (Obsidian Sonic Lab) ────────────────────── */
 :root {
-  --bg-primary:   #1E1E1E;
-  --bg-panel:     #2D2D30;
-  --bg-panel-hover: #38383C;
-  --bg-card:      #2D2D30;
-  --bg-card-hover:#38383C;
-  --border:       #3E3E42;
-  --border-subtle:rgba(255, 255, 255, 0.08);
-  --border-glow:  rgba(99, 102, 241, 0.4);
+  --bg-primary:   #131314;
+  --bg-panel:     #1c1b1c;
+  --bg-panel-hover: #2a2a2b;
+  --bg-card:      #201f20;
+  --bg-card-hover:#2a2a2b;
+  --border:       #353436;
+  --border-subtle:rgba(70, 69, 84, 0.25);
+  --border-glow:  rgba(192, 193, 255, 0.4);
 
-  --accent-purple: #7c3aed;
-  --accent-indigo: #6366f1;
-  --accent-cyan:   #06b6d4;
-  --accent-pink:   #ec4899;
+  --accent-purple: #8083ff;
+  --accent-indigo: #c0c1ff;
+  --accent-cyan:   #4edea3;
+  --accent-pink:   #ddb7ff;
 
-  --text-primary:  #E0E0E0;
-  --text-secondary: #CCCCCC;
-  --text-muted:    #858585;
+  --text-primary:  #e5e2e3;
+  --text-secondary: #c7c4d7;
+  --text-muted:    #908fa0;
 
-  /* Muted Track Colors */
-  --track-speech-bg: #1e262b;
-  --track-speech-border: #2c3e44;
-  --track-sfx-bg: #262230;
-  --track-sfx-border: #3b334a;
-  --track-music-bg: #2b251e;
-  --track-music-border: #443729;
+  /* Track Colors */
+  --track-speech-bg: #161a1f;
+  --track-speech-border: #23343d;
+  --track-sfx-bg: #1c1824;
+  --track-sfx-border: #382c4d;
+  --track-music-bg: #211c16;
+  --track-music-border: #4a3a25;
 
   /* SFX tag colors */
-  --tag-impact:     #ef4444;
-  --tag-riser:      #8b5cf6;
-  --tag-boom:       #f97316;
-  --tag-glitch:     #06b6d4;
-  --tag-whoosh:     #10b981;
-  --tag-transition: #6366f1;
-  --tag-drop:       #64748b;
-  --tag-silence:    #475569;
+  --tag-impact:     #ffb4ab;
+  --tag-riser:      #c0c1ff;
+  --tag-boom:       #ffb4ab;
+  --tag-glitch:     #4edea3;
+  --tag-whoosh:     #ddb7ff;
+  --tag-transition: #c0c1ff;
+  --tag-drop:       #908fa0;
+  --tag-silence:    #464554;
 }
 
 /* ── Base ─────────────────────────────────────────────────────── */

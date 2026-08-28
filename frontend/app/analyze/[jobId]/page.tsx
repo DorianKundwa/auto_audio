@@ -12,6 +12,7 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useProjectExport, MusicConfig } from "@/hooks/useProjectExport";
 
 // Studio Components
+import { SidebarNav } from "@/components/studio/SidebarNav";
 import { StudioHeader } from "@/components/studio/StudioHeader";
 import { VideoPreview } from "@/components/studio/VideoPreview";
 import { TransportControls } from "@/components/studio/TransportControls";
@@ -44,7 +45,8 @@ export default function StudioPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Modals & Drawers
+  // Navigation & Drawer states
+  const [activeTab, setActiveTab] = useState<"studio" | "library" | "assets" | "exports">("studio");
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [libraryCategory, setLibraryCategory] = useState("all");
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -147,7 +149,7 @@ export default function StudioPage() {
       });
   }, [jobId, setTimelineEvents]);
 
-  // Load sound library
+  // Load sound library catalog
   useEffect(() => {
     fetch(apiUrl("/api/library/sfx"))
       .then((r) => r.ok && r.json())
@@ -208,169 +210,183 @@ export default function StudioPage() {
   // Loading Screen
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#1E1E1E] text-[#858585]">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background text-on-surface-variant">
         <div className="spinner" style={{ width: 44, height: 44, borderWidth: 3 }} />
-        <p className="text-sm font-medium">Opening Audio Studio Workspace...</p>
+        <p className="text-sm font-medium font-geist">Initializing Obsidian Sonic Lab Workspace...</p>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#1E1E1E] text-[#CCCCCC] select-none">
-      {/* ── Studio Top Toolbar ── */}
-      <StudioHeader
-        jobId={jobId}
-        sfxCount={events.length}
-        segmentsCount={timeline?.analyzed_segments.length || 0}
-        musicEnabled={musicEnabled}
-        sfxEnabled={sfxEnabled}
-        isPlaying={isPlaying}
-        onToggleMusic={setMusicEnabled}
-        onToggleSFX={setSfxEnabled}
+    <div className="min-h-screen flex bg-background text-on-surface select-none">
+      {/* ── Pinned Left Sidebar Navigation ── */}
+      <SidebarNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         onOpenLibrary={() => {
           setLibraryCategory("all");
           setIsLibraryOpen(true);
         }}
-        onOpenShortcuts={() => setIsShortcutsOpen(true)}
         onOpenExport={() => setIsExportDialogOpen(true)}
-        isExporting={exportStage !== "idle" && exportStage !== "completed" && exportStage !== "error"}
       />
 
-      {/* ── 3-Pane NLE Standard Layout: Top Left Video, Top Right Inspector, Bottom Timeline ── */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 p-5 overflow-hidden">
-        {/* Top Left: Video Player */}
-        <div className="lg:col-span-7 flex flex-col gap-3">
-          <VideoPreview
-            videoRef={videoRef}
-            containerRef={containerRef}
-            src={apiUrl(`/uploads/${jobId}/video.mp4`)}
+      {/* ── Main Studio Workstation (pl-20 offset) ── */}
+      <main className="pl-20 flex-1 flex flex-col min-h-screen">
+        {/* ── Studio Top Toolbar ── */}
+        <StudioHeader
+          jobId={jobId}
+          sfxCount={events.length}
+          segmentsCount={timeline?.analyzed_segments.length || 0}
+          musicEnabled={musicEnabled}
+          sfxEnabled={sfxEnabled}
+          isPlaying={isPlaying}
+          onToggleMusic={setMusicEnabled}
+          onToggleSFX={setSfxEnabled}
+          onOpenLibrary={() => {
+            setLibraryCategory("all");
+            setIsLibraryOpen(true);
+          }}
+          onOpenShortcuts={() => setIsShortcutsOpen(true)}
+          onOpenExport={() => setIsExportDialogOpen(true)}
+          isExporting={exportStage !== "idle" && exportStage !== "completed" && exportStage !== "error"}
+        />
+
+        {/* ── 3-Pane NLE Standard Layout: Top Left Video, Top Right Inspector, Bottom Timeline ── */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 p-5 overflow-hidden">
+          {/* Top Left: Video Player */}
+          <div className="lg:col-span-7 flex flex-col gap-3">
+            <VideoPreview
+              videoRef={videoRef}
+              containerRef={containerRef}
+              src={apiUrl(`/uploads/${jobId}/video.mp4`)}
+              currentTime={currentTime}
+              duration={duration}
+              isPlaying={isPlaying}
+              volume={volume}
+              isMuted={isMuted}
+              playbackRate={playbackRate}
+              isFullscreen={isFullscreen}
+              sfxCount={events.length}
+              activeMood={musicConfig?.mood || ""}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onTogglePlay={togglePlay}
+              onSeek={seek}
+              onSkip={skip}
+              onSetVolume={setVolume}
+              onToggleMute={toggleMute}
+              onSetPlaybackRate={setPlaybackRate}
+              onToggleFullscreen={toggleFullscreen}
+            />
+          </div>
+
+          {/* Top Right: Inspector Panel */}
+          <div className="lg:col-span-5 flex flex-col overflow-hidden max-h-[500px]">
+            <Inspector
+              selectedEvent={selectedEvent}
+              musicConfig={musicConfig}
+              analyzedSegments={timeline?.analyzed_segments || []}
+              currentTime={currentTime}
+              videoDuration={duration}
+              previewPlayingPath={previewPlayingPath}
+              onUpdateEvent={updateEvent}
+              onDeleteEvent={(id) => {
+                deleteEvent(id);
+                showToast("Sound effect deleted", "info");
+              }}
+              onDuplicateEvent={(id) => {
+                duplicateEvent(id);
+                showToast("Sound effect duplicated", "success");
+              }}
+              onPlayAudioPreview={playAudioPreview}
+              onOpenLibraryForReplace={handleOpenLibraryForReplace}
+              onUpdateMusicConfig={(updates) =>
+                setMusicConfig((m) => (m ? { ...m, ...updates } : m))
+              }
+              onSeek={seek}
+            />
+          </div>
+        </div>
+
+        {/* ── Transport Controls Bar ── */}
+        <div className="px-5 pb-2">
+          <TransportControls
+            isPlaying={isPlaying}
             currentTime={currentTime}
             duration={duration}
-            isPlaying={isPlaying}
-            volume={volume}
-            isMuted={isMuted}
-            playbackRate={playbackRate}
-            isFullscreen={isFullscreen}
-            sfxCount={events.length}
-            activeMood={musicConfig?.mood || ""}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
+            zoom={zoom}
+            snapEnabled={snapEnabled}
             onTogglePlay={togglePlay}
-            onSeek={seek}
-            onSkip={skip}
-            onSetVolume={setVolume}
-            onToggleMute={toggleMute}
-            onSetPlaybackRate={setPlaybackRate}
-            onToggleFullscreen={toggleFullscreen}
+            onResetTime={() => seek(0)}
+            onSetZoom={setZoom}
+            onToggleSnap={() => setSnapEnabled((s) => !s)}
           />
         </div>
 
-        {/* Top Right: Inspector Panel */}
-        <div className="lg:col-span-5 flex flex-col overflow-hidden max-h-[500px]">
-          <Inspector
-            selectedEvent={selectedEvent}
-            musicConfig={musicConfig}
+        {/* ── Bottom: Full-Width Timeline Spanning Entire Screen Width ── */}
+        <div className="px-5 pb-5">
+          <Timeline
+            events={events}
             analyzedSegments={timeline?.analyzed_segments || []}
-            currentTime={currentTime}
+            musicConfig={musicConfig}
+            musicEnabled={musicEnabled}
+            sfxEnabled={sfxEnabled}
             videoDuration={duration}
-            previewPlayingPath={previewPlayingPath}
-            onUpdateEvent={updateEvent}
+            currentTime={currentTime}
+            zoom={zoom}
+            selectedEventId={selectedEventId}
+            onSelectEvent={setSelectedEventId}
             onDeleteEvent={(id) => {
               deleteEvent(id);
               showToast("Sound effect deleted", "info");
             }}
-            onDuplicateEvent={(id) => {
-              duplicateEvent(id);
-              showToast("Sound effect duplicated", "success");
-            }}
-            onPlayAudioPreview={playAudioPreview}
-            onOpenLibraryForReplace={handleOpenLibraryForReplace}
-            onUpdateMusicConfig={(updates) =>
-              setMusicConfig((m) => (m ? { ...m, ...updates } : m))
-            }
             onSeek={seek}
+            onDragStart={handleDragStart}
+            onDragMove={handleDragMove}
+            onDragEnd={handleDragEnd}
           />
         </div>
-      </div>
 
-      {/* ── Transport Controls Bar ── */}
-      <div className="px-5 pb-2">
-        <TransportControls
-          isPlaying={isPlaying}
+        {/* ── Slide-Out Sound Library Drawer ── */}
+        <SoundLibraryDrawer
+          isOpen={isLibraryOpen}
+          library={library}
           currentTime={currentTime}
-          duration={duration}
-          zoom={zoom}
-          snapEnabled={snapEnabled}
-          onTogglePlay={togglePlay}
-          onResetTime={() => seek(0)}
-          onSetZoom={setZoom}
-          onToggleSnap={() => setSnapEnabled((s) => !s)}
+          previewPlayingPath={previewPlayingPath}
+          initialCategory={libraryCategory}
+          onClose={() => setIsLibraryOpen(false)}
+          onPlayPreview={playAudioPreview}
+          onInsertSound={handleInsertSound}
         />
-      </div>
 
-      {/* ── Bottom: Full-Width Timeline Spanning Entire Screen Width ── */}
-      <div className="px-5 pb-5">
-        <Timeline
-          events={events}
-          analyzedSegments={timeline?.analyzed_segments || []}
-          musicConfig={musicConfig}
-          musicEnabled={musicEnabled}
-          sfxEnabled={sfxEnabled}
+        {/* ── Export Video Dialog Modal ── */}
+        <ExportDialog
+          isOpen={isExportDialogOpen}
+          stage={exportStage}
+          progress={exportProgress}
+          error={exportError}
+          downloadUrl={downloadUrl}
           videoDuration={duration}
-          currentTime={currentTime}
-          zoom={zoom}
-          selectedEventId={selectedEventId}
-          onSelectEvent={setSelectedEventId}
-          onDeleteEvent={(id) => {
-            deleteEvent(id);
-            showToast("Sound effect deleted", "info");
+          sfxCount={events.length}
+          musicMood={musicConfig?.mood || ""}
+          onClose={() => {
+            setIsExportDialogOpen(false);
+            resetExport();
           }}
-          onSeek={seek}
-          onDragStart={handleDragStart}
-          onDragMove={handleDragMove}
-          onDragEnd={handleDragEnd}
+          onStartExport={() =>
+            startExport(events, musicConfig, musicEnabled, sfxEnabled)
+          }
         />
-      </div>
 
-      {/* ── Slide-Out Sound Library Drawer ── */}
-      <SoundLibraryDrawer
-        isOpen={isLibraryOpen}
-        library={library}
-        currentTime={currentTime}
-        previewPlayingPath={previewPlayingPath}
-        initialCategory={libraryCategory}
-        onClose={() => setIsLibraryOpen(false)}
-        onPlayPreview={playAudioPreview}
-        onInsertSound={handleInsertSound}
-      />
+        {/* ── Keyboard Shortcuts Modal ── */}
+        <ShortcutsModal
+          isOpen={isShortcutsOpen}
+          onClose={() => setIsShortcutsOpen(false)}
+        />
 
-      {/* ── Export Video Dialog Modal ── */}
-      <ExportDialog
-        isOpen={isExportDialogOpen}
-        stage={exportStage}
-        progress={exportProgress}
-        error={exportError}
-        downloadUrl={downloadUrl}
-        videoDuration={duration}
-        sfxCount={events.length}
-        musicMood={musicConfig?.mood || ""}
-        onClose={() => {
-          setIsExportDialogOpen(false);
-          resetExport();
-        }}
-        onStartExport={() =>
-          startExport(events, musicConfig, musicEnabled, sfxEnabled)
-        }
-      />
-
-      {/* ── Keyboard Shortcuts Modal ── */}
-      <ShortcutsModal
-        isOpen={isShortcutsOpen}
-        onClose={() => setIsShortcutsOpen(false)}
-      />
-
-      {/* ── Toast Notifications ── */}
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-    </main>
+        {/* ── Toast Notifications ── */}
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      </main>
+    </div>
   );
 }
