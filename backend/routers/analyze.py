@@ -81,6 +81,11 @@ async def analyze_video(
     if not segments:
         raise HTTPException(422, "Could not extract any text segments from the video.")
 
+    # Ensure video_duration spans all detected subtitle segments
+    max_sub_time = max((s.end_sec for s in segments), default=0.0)
+    if max_sub_time > video_duration:
+        video_duration = max_sub_time + 1.5
+
     # --- Step 2: AI analysis ---
     analyzed = await analyze_segments(segments, settings)
 

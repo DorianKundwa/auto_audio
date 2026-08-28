@@ -2,7 +2,7 @@
 AI Analyzer — two-phase content classification.
 
 Phase 1: Fast regex/keyword rules (covers ~70% of cases instantly).
-Phase 2: Gemini API for semantically ambiguous segments.
+Phase 2: Gemini API for semantically ambiguous segments (batched).
 
 Tags: HOOK | REVEAL | CONTRAST | STAGE_TRANSITION | QUESTION |
       CLIMAX | ENDING | GLITCH | DROP | NONE
@@ -42,6 +42,7 @@ RULES: Dict[ContentTag, List[str]] = {
         r"\bthey\s+lied\b",
         r"\bthe\s+real\s+story\b",
         r"\brevealed?\b.*\btruth\b",
+        r"\bunsettling\b",
     ],
     ContentTag.HOOK: [
         r"\bwhat\s+if\s+(i\s+told\s+you|you\s+knew)\b",
@@ -51,6 +52,7 @@ RULES: Dict[ContentTag, List[str]] = {
         r"\bno\s+one\s+talks\s+about\b",
         r"\bthe\s+secret\s+(behind|of|to)\b",
         r"\bthis\s+will\s+change\b",
+        r"\bthe\s+strangest\s+part\b",
     ],
     ContentTag.CLIMAX: [
         r"\bfinally\b",
@@ -100,6 +102,7 @@ RULES: Dict[ContentTag, List[str]] = {
         r"\bremember\b.{0,40}\btoday\b",
         r"\bso\s+next\s+time\b",
         r"\btake\s+away\b",
+        r"\bin\s+the\s+end\b",
     ],
     ContentTag.DROP: [
         r"\bnot\s+remotely\b",
@@ -124,16 +127,13 @@ def _apply_rules(text: str) -> Optional[ContentTag]:
 # ---------------------------------------------------------------------------
 # Gemini batch classification
 # ---------------------------------------------------------------------------
-async def _classify_with_gemini(
-    segments: List[SRTSegment],
+async def _classify_chunk(
+    chunk: List[SRTSegment],
+    api_key: str,
+    model_name: str,
 ) -> Dict[int, Tuple[ContentTag, float]]:
-    """Send untagged segments to Gemini REST API for semantic classification."""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return {}
-
     all_tags = [t.value for t in ContentTag]
-    seg_lines = "\n".join(f'{s.id}: "{s.text}"' for s in segments)
+    seg_lines = "\n".join(f'{s.id}: "{s.text}"' for s in chunk)
 
     prompt = f"""You are a video script sound-design analyst.
 Classify each numbered subtitle segment with exactly ONE tag from this list:
@@ -155,21 +155,10 @@ Segments to classify:
 Reply ONLY with a JSON object mapping segment ID (string) to tag (string).
 Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
 
-    model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest").strip()
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
-
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}
-                ]
-            }
-        ]
-    }
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
     import urllib.request
-    import urllib.error
 
     def _call_gemini_rest():
         req = urllib.request.Request(
@@ -184,27 +173,46 @@ Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
             return json.loads(resp.read().decode("utf-8"))
 
     loop = asyncio.get_event_loop()
-    try:
-        data = await loop.run_in_executor(None, _call_gemini_rest)
-        raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-        json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
-        if not json_match:
-            return {}
-
-        raw: Dict[str, str] = json.loads(json_match.group())
-        result: Dict[int, Tuple[ContentTag, float]] = {}
-        for k, v in raw.items():
-            try:
-                seg_id = int(k)
-                if v in all_tags:
-                    result[seg_id] = (ContentTag(v), 0.82)
-            except (ValueError, KeyError):
-                pass
-        return result
-
-    except Exception as exc:
-        print(f"[analyzer] Gemini classification note: {exc} (using local regex/heuristics engine)")
+    data = await loop.run_in_executor(None, _call_gemini_rest)
+    raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+    if not json_match:
         return {}
+
+    raw: Dict[str, str] = json.loads(json_match.group())
+    result: Dict[int, Tuple[ContentTag, float]] = {}
+    for k, v in raw.items():
+        try:
+            seg_id = int(k)
+            if v in all_tags:
+                result[seg_id] = (ContentTag(v), 0.82)
+        except (ValueError, KeyError):
+            pass
+    return result
+
+
+async def _classify_with_gemini(
+    segments: List[SRTSegment],
+) -> Dict[int, Tuple[ContentTag, float]]:
+    """Send untagged segments in batches to Gemini REST API for classification."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return {}
+
+    model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest").strip()
+    results: Dict[int, Tuple[ContentTag, float]] = {}
+
+    # Batch in chunks of 40 to avoid token limits
+    CHUNK_SIZE = 40
+    for i in range(0, len(segments), CHUNK_SIZE):
+        chunk = segments[i : i + CHUNK_SIZE]
+        try:
+            chunk_results = await _classify_chunk(chunk, api_key, model_name)
+            results.update(chunk_results)
+        except Exception as exc:
+            print(f"[analyzer] Gemini chunk classification note: {exc}")
+
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -216,7 +224,7 @@ async def analyze_segments(
 ) -> List[AnalyzedSegment]:
     """
     Analyze all SRT segments and return tagged AnalyzedSegment list.
-    Phase 1: regex rules  →  Phase 2: Gemini for remaining NONE segments.
+    Preserves 100% of input subtitle segments.
     """
     # Phase 1 — rules
     rule_results: Dict[int, Tuple[ContentTag, float]] = {}

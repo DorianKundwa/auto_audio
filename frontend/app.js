@@ -178,6 +178,15 @@ function setSrtFile(file) {
   document.getElementById("srt-drop-empty").classList.add("hidden");
   document.getElementById("srt-drop-filled").classList.remove("hidden");
   document.getElementById("srt-filename-text").innerText = file.name;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = (e.target?.result || "").toString();
+    const matches = text.match(/(?:\d{1,2}:)?\d{2}:\d{2}[,\.]\d{1,3}\s*-->\s*(?:\d{1,2}:)?\d{2}:\d{2}[,\.]\d{1,3}/g);
+    const count = matches ? matches.length : text.split(/\n\s*\n/).length;
+    document.getElementById("srt-captions-count").innerText = `${count} Captions Detected`;
+  };
+  reader.readAsText(file);
 }
 
 function clearSelectedSrt(e) {
