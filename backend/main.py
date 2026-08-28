@@ -17,6 +17,9 @@ from contextlib import asynccontextmanager
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
+# Ensure backend directory is in sys.path
+sys.path.insert(0, str(Path(__file__).parent))
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,7 +47,6 @@ app = FastAPI(
 )
 
 # ---- CORS ----------------------------------------------------------------
-# Allow any localhost / 127.0.0.1 port (e.g. Next.js dev server on port 3000, 3001, etc.)
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
@@ -63,6 +65,7 @@ app.include_router(export.router, prefix="/api", tags=["Export"])
 ROOT_DIR = Path(__file__).parent.parent
 assets_path = ROOT_DIR / "assets"
 uploads_path = ROOT_DIR / "uploads"
+frontend_path = ROOT_DIR / "frontend"
 
 if assets_path.exists():
     app.mount("/assets", StaticFiles(directory=str(assets_path)), name="assets")
@@ -98,6 +101,11 @@ async def get_music_library():
         with open(meta_path, "r", encoding="utf-8") as f:
             return json.load(f)
     return []
+
+
+# ---- Mount HTML/JS Frontend ----------------------------------------------
+if frontend_path.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
 
 
 if __name__ == "__main__":

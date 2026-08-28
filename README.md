@@ -43,8 +43,8 @@ Video + Script (.srt) ──▶ AI Semantic Analyzer ──▶ Interactive DAW S
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 16 (Turbopack), React 19, Tailwind CSS v4, shadcn/ui, Radix UI, Lucide Icons
-- **Backend API**: Python 3.9+, FastAPI, Uvicorn, Pydantic v2
+- **Frontend Workstation**: Obsidian Sonic Lab Design System (HTML5, Tailwind CSS, Google Fonts Geist/Inter/JetBrains Mono, Material Symbols, Vanilla ES6 JavaScript)
+- **Backend API & Web Server**: Python 3.9+, FastAPI, Uvicorn, Pydantic v2
 - **AI & Analysis**: Rule-based regex heuristics + Google Gemini Flash REST API (`gemini-flash-latest`)
 - **Speech-to-Text**: `faster-whisper` (on-device local transcription)
 - **Audio & Video Engine**: FFmpeg 6 (`amix`, `aloop`, `adelay`, `volume`, `-c:v copy`, `aac 192k`)
@@ -54,19 +54,18 @@ Video + Script (.srt) ──▶ AI Semantic Analyzer ──▶ Interactive DAW S
 ## ⚡ Quick Start
 
 ### 1. One-Click Launcher (Recommended)
-Automatically detects open ports, configures proxying, and opens the studio in your browser:
+Runs the unified FastAPI server which directly delivers the Obsidian Sonic Lab studio workstation:
 
 ```bash
 python launch.py
 ```
-
 Or on Windows:
 ```bash
 start.bat
 ```
 
 *Optional Flags:*
-- `python launch.py --backend-port 8080 --frontend-port 4000` (custom ports)
+- `python launch.py --port 8000` (custom port)
 - `python launch.py --no-browser` (do not auto-launch browser)
 
 ---

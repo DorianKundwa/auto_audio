@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoAudio — Obsidian Sonic Lab</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#131314",
+            "surface-dim": "#131314",
+            "surface-bright": "#3a393a",
+            "surface-container-lowest": "#0e0e0f",
+            "surface-container-low": "#1c1b1c",
+            "surface-container": "#201f20",
+            "surface-container-high": "#2a2a2b",
+            "surface-container-highest": "#353436",
+            "on-surface": "#e5e2e3",
+            "on-surface-variant": "#c7c4d7",
+            "inverse-surface": "#e5e2e3",
+            "inverse-on-surface": "#313031",
+            "outline": "#908fa0",
+            "outline-variant": "#464554",
+            "surface-tint": "#c0c1ff",
+            "primary": "#c0c1ff",
+            "on-primary": "#1000a9",
+            "primary-container": "#8083ff",
+            "on-primary-container": "#0d0096",
+            "inverse-primary": "#494bd6",
+            "secondary": "#ddb7ff",
+            "on-secondary": "#490080",
+            "secondary-container": "#6f00be",
+            "on-secondary-container": "#d6a9ff",
+            "tertiary": "#4edea3",
+            "on-tertiary": "#003824",
+            "tertiary-container": "#00885d",
+            "on-tertiary-container": "#000703",
+            "error": "#ffb4ab",
+            "on-error": "#690005",
+            "error-container": "#93000a",
+            "on-error-container": "#ffdad6",
+            "background": "#131314",
+            "on-background": "#e5e2e3"
+          },
+          spacing: {
+            "drawer-width": "420px",
+            "header-width": "144px",
+            "ruler-height": "28px",
+            "track-height": "52px"
+          },
+          fontFamily: {
+            "timecode": ["'JetBrains Mono'", "monospace"],
+            "display-lg": ["'Geist'", "sans-serif"],
+            "body-base": ["'Inter'", "sans-serif"],
+            "body-bold": ["'Inter'", "sans-serif"],
+            "headline-sm": ["'Geist'", "sans-serif"],
+            "label-mono": ["'JetBrains Mono'", "monospace"],
+            "caption": ["'Inter'", "sans-serif"],
+            "headline-md": ["'Geist'", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  
+  <style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        overscroll-behavior: none;
+        background-color: #131314;
+        color: #e5e2e3;
+        font-family: 'Inter', sans-serif;
+      }
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #131314;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #353436;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #464554;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #464554;
+      border-radius: 4px;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-pulse-ring {
+      animation: pulse-ring 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface select-none min-h-screen overflow-x-hidden">
+
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <!-- 1. PINNED 80px LEFT SIDEBAR NAVIGATION                                   -->
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <aside class="fixed left-0 top-0 h-full w-20 bg-surface-container-lowest flex flex-col items-center py-6 z-50 border-r border-outline-variant/10">
+    <!-- Brand Logo -->
+    <button onclick="switchView('session')" class="mb-8 w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-primary-container to-secondary p-[1px] shadow-lg shadow-primary/20 hover:scale-105 transition-transform cursor-pointer" title="AutoAudio Studio">
+      <div class="w-full h-full bg-surface-container-lowest rounded-[11px] flex items-center justify-center text-sm font-bold text-primary">
+        ⚡
+      </div>
+    </button>
+
+    <!-- Navigation Buttons -->
+    <nav class="flex flex-col gap-4 w-full px-2 flex-1" id="sidebar-nav">
+      <button onclick="switchView('studio')" id="nav-studio" class="flex flex-col items-center justify-center py-3 rounded-xl transition-all cursor-pointer bg-primary-container text-on-primary-container shadow-md shadow-primary/20" title="Studio Workstation">
+        <span class="material-symbols-outlined mb-1 text-[20px]">grid_view</span>
+        <span class="text-[10px] font-bold uppercase tracking-wider font-label-mono">Studio</span>
+      </button>
+
+      <button onclick="toggleLibraryDrawer()" id="nav-library" class="flex flex-col items-center justify-center py-3 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="Sound Design Library">
+        <span class="material-symbols-outlined mb-1 text-[20px]">library_music</span>
+        <span class="text-[10px] font-bold uppercase tracking-wider font-label-mono">Library</span>
+      </button>
+
+      <button onclick="switchView('session')" id="nav-assets" class="flex flex-col items-center justify-center py-3 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="New Session & Media">
+        <span class="material-symbols-outlined mb-1 text-[20px]">folder_open</span>
+        <span class="text-[10px] font-bold uppercase tracking-wider font-label-mono">Session</span>
+      </button>
+
+      <button onclick="openMixdownModal()" id="nav-exports" class="flex flex-col items-center justify-center py-3 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="Export Video & Mixdown">
+        <span class="material-symbols-outlined mb-1 text-[20px]">ios_share</span>
+        <span class="text-[10px] font-bold uppercase tracking-wider font-label-mono">Exports</span>
+      </button>
+    </nav>
+
+    <!-- Settings / Status -->
+    <div class="flex flex-col items-center gap-3">
+      <button onclick="openShortcutsModal()" class="w-10 h-10 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors cursor-pointer" title="Keyboard Shortcuts (?)">
+        <span class="material-symbols-outlined text-[18px]">keyboard</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <!-- MAIN WORKSPACE CONTAINER (pl-20)                                         -->
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <div class="pl-20 flex flex-col min-h-screen">
+    
+    <!-- Top Workspace Header -->
+    <header class="fixed top-0 left-20 right-0 h-16 bg-surface-container-lowest/80 backdrop-blur-xl z-40 flex items-center px-8 border-b border-outline-variant/10 justify-between">
+      <div class="flex items-center gap-3">
+        <span class="font-label-mono text-xs text-on-surface-variant uppercase tracking-wider">
+          Obsidian Sonic Lab v2.0
+        </span>
+      </div>
+
+      <div class="text-center">
+        <h1 class="font-headline-sm text-base text-primary font-bold tracking-tight" id="project-header-title">
+          Untitled Project — AI Sound Design
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Quick 1-Click Interactive Demo Launcher -->
+        <button onclick="launchInteractiveDemo()" id="btn-quick-demo" class="px-3 py-1.5 rounded-lg bg-surface-container border border-primary/30 text-primary hover:bg-primary hover:text-on-primary text-xs font-bold font-label-mono flex items-center gap-1.5 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-[16px] text-amber-400">bolt</span>
+          <span>⚡ Quick Demo (1-Click)</span>
+        </button>
+
+        <!-- Live Stereo Master VU Meter -->
+        <div class="hidden md:flex items-center gap-1.5 bg-surface-container-lowest px-3 py-1 rounded-lg border border-outline-variant/15 font-timecode text-[11px]">
+          <span class="text-[9px] text-on-surface-variant uppercase font-bold mr-1">VU</span>
+          <div class="flex gap-[2px] h-3 items-end" id="master-vu-bars">
+            <div class="w-1 bg-tertiary h-[40%] rounded-full transition-all"></div>
+            <div class="w-1 bg-tertiary h-[65%] rounded-full transition-all"></div>
+            <div class="w-1 bg-primary h-[85%] rounded-full transition-all"></div>
+            <div class="w-1 bg-secondary h-[45%] rounded-full transition-all"></div>
+          </div>
+          <span class="text-primary font-bold ml-1" id="master-db-text">-6.0 dB</span>
+        </div>
+
+        <!-- Engine Status -->
+        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high border border-outline-variant/20 text-xs font-label-mono" id="engine-status-pill">
+          <span class="w-2 h-2 rounded-full bg-tertiary animate-pulse" id="engine-status-dot"></span>
+          <span class="text-on-surface" id="engine-status-text">AI Online</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- VIEW 1: NEW AI SESSION & DROPZONE (Design 1)                            -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="view-session" class="relative pt-24 pb-12 px-8 max-w-[1240px] mx-auto w-full flex-1 flex flex-col justify-center animate-in fade-in duration-200">
+      <div class="space-y-8">
+        <!-- Section Header -->
+        <div class="space-y-1 text-left">
+          <h2 class="font-display-lg text-4xl font-extrabold text-on-surface tracking-tight">
+            New AI Session
+          </h2>
+          <p class="font-body-base text-on-surface-variant text-base">
+            Drop your video and let the neural engine build a synchronized soundscape.
+          </p>
+        </div>
+
+        <!-- Upload Matrix -->
+        <div class="grid md:grid-cols-12 gap-6">
+          <!-- Video Dropzone -->
+          <div class="md:col-span-7 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-label-mono text-xs font-bold text-primary flex items-center gap-2 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[16px]">movie</span> 1. Video Source
+              </span>
+              <span class="font-label-mono text-[10px] text-on-surface-variant">
+                MP4, MOV, MKV, WEBM (MAX 2GB)
+              </span>
+            </div>
+
+            <input type="file" id="video-file-input" accept="video/*" class="hidden" onchange="onVideoFileSelected(event)"/>
+
+            <div id="video-dropzone" onclick="document.getElementById('video-file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleVideoDrop(event)" class="relative group cursor-pointer w-full min-h-[220px] rounded-2xl bg-surface-container-low/60 backdrop-blur-md flex flex-col items-center justify-center p-8 transition-all duration-300 border-2 border-dashed border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container/80">
+              <div id="video-drop-empty" class="flex flex-col items-center text-center">
+                <div class="flex items-center justify-center w-14 h-14 rounded-full bg-surface-container-high shadow-md mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <span class="material-symbols-outlined text-[30px] text-primary">cloud_upload</span>
+                </div>
+                <h3 class="font-headline-sm text-base font-bold text-on-surface mb-1">
+                  Drag & Drop Media Video
+                </h3>
+                <p class="font-body-base text-xs text-on-surface-variant mb-4">
+                  Supports MP4, MOV, WEBM (H.264 / ProRes)
+                </p>
+                <button type="button" class="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary font-label-mono text-xs px-5 py-2 rounded-full transition-colors duration-200 font-bold">
+                  BROWSE FILES
+                </button>
+              </div>
+
+              <div id="video-drop-filled" class="hidden w-full flex items-center justify-between gap-4">
+                <div class="w-12 h-12 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary flex-shrink-0">
+                  <span class="material-symbols-outlined text-[24px]">movie</span>
+                </div>
+                <div class="flex-1 min-w-0 text-left">
+                  <p class="text-sm font-bold text-white truncate" id="video-filename-text">video.mp4</p>
+                  <div class="flex items-center gap-2 mt-1 font-label-mono text-[10px] text-primary">
+                    <span id="video-size-badge" class="px-2 py-0.5 rounded bg-primary-container/20 border border-primary/30">0 MB</span>
+                    <span id="video-dur-badge" class="px-2 py-0.5 rounded bg-surface-container-high">0.0s</span>
+                  </div>
+                </div>
+                <button type="button" onclick="clearSelectedVideo(event)" class="w-8 h-8 rounded-lg hover:bg-surface-container-highest text-on-surface-variant hover:text-error flex items-center justify-center transition-colors">
+                  <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Script & Subtitle Dropzone -->
+          <div class="md:col-span-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-label-mono text-xs font-bold text-secondary flex items-center gap-2 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[16px]">subtitles</span> 2. Narration Script
+              </span>
+              <button onclick="loadSampleScriptDemo()" class="font-label-mono text-[10px] text-secondary hover:underline cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-outlined text-[12px] text-amber-400">bolt</span> Demo Script
+              </button>
+            </div>
+
+            <!-- Mode Switcher -->
+            <div class="grid grid-cols-2 p-1 rounded-xl bg-surface-container-lowest border border-outline-variant/15">
+              <button onclick="setScriptMode('upload')" id="tab-script-upload" class="py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer bg-primary-container text-on-primary-container shadow-xs font-label-mono">
+                Upload (.srt / .vtt)
+              </button>
+              <button onclick="setScriptMode('transcribe')" id="tab-script-transcribe" class="py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-on-surface-variant hover:text-on-surface font-label-mono">
+                Auto Transcribe
+              </button>
+            </div>
+
+            <input type="file" id="srt-file-input" accept=".srt,.vtt" class="hidden" onchange="onSrtFileSelected(event)"/>
+
+            <div id="srt-dropzone" onclick="document.getElementById('srt-file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleSrtDrop(event)" class="w-full min-h-[160px] rounded-2xl bg-surface-container-low/60 border-2 border-dashed border-outline-variant/30 hover:border-secondary/50 hover:bg-surface-container/80 flex flex-col items-center justify-center p-6 text-center transition-all cursor-pointer">
+              <div id="srt-drop-empty" class="flex flex-col items-center">
+                <span class="material-symbols-outlined text-[32px] text-secondary mb-2 opacity-80">description</span>
+                <p class="font-headline-sm text-xs font-bold text-on-surface">Drop Subtitle File (.srt / .vtt)</p>
+                <p class="font-caption text-[10px] text-on-surface-variant mt-0.5">Captions for AI narrative scoring</p>
+              </div>
+
+              <div id="srt-drop-filled" class="hidden w-full flex items-center justify-between gap-3">
+                <div class="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center text-secondary flex-shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">description</span>
+                </div>
+                <div class="min-w-0 flex-1 text-left">
+                  <p class="text-xs font-bold text-white truncate" id="srt-filename-text">narration.srt</p>
+                  <span class="font-label-mono text-[10px] text-tertiary font-bold" id="srt-captions-count">12 Captions Loaded</span>
+                </div>
+                <button type="button" onclick="clearSelectedSrt(event)" class="w-7 h-7 rounded-lg hover:bg-surface-container-highest text-on-surface-variant hover:text-error flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Style Presets Grid (Design 1) -->
+        <div class="space-y-3 pt-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-headline-sm text-sm font-bold text-on-surface uppercase tracking-wider">
+                Style Presets
+              </h3>
+              <p class="font-caption text-xs text-on-surface-variant">Choose an AI scoring template to start.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="presets-container">
+            <!-- Preset 1: Action & Hype -->
+            <div onclick="selectPreset('action')" id="preset-action" class="preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-primary bg-gradient-to-br from-primary/20 via-surface-container to-surface-container shadow-lg shadow-primary/10 ring-1 ring-primary">
+              <div class="flex items-center justify-between">
+                <span class="font-label-mono text-xs text-secondary font-bold tracking-widest">01</span>
+                <button type="button" onclick="previewPresetSound('assets/sfx/impacts/impact_01.wav', event)" class="p-1 rounded-full hover:bg-surface-container-high text-primary" title="Audition Preset">
+                  <span class="material-symbols-outlined text-[16px]">volume_up</span>
+                </button>
+              </div>
+              <div>
+                <h4 class="font-headline-sm text-sm font-bold text-on-surface mb-0.5">Action & Hype</h4>
+                <p class="font-caption text-[11px] text-on-surface-variant leading-snug">
+                  Heavy booms, cinematic impacts & intense tension risers.
+                </p>
+              </div>
+            </div>
+
+            <!-- Preset 2: Dark Mystery -->
+            <div onclick="selectPreset('mystery')" id="preset-mystery" class="preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-outline-variant/20 hover:border-outline-variant/50 hover:-translate-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-label-mono text-xs text-secondary font-bold tracking-widest">02</span>
+                <button type="button" onclick="previewPresetSound('assets/sfx/glitches/glitch_01.wav', event)" class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary" title="Audition Preset">
+                  <span class="material-symbols-outlined text-[16px]">volume_up</span>
+                </button>
+              </div>
+              <div>
+                <h4 class="font-headline-sm text-sm font-bold text-on-surface mb-0.5">Dark Mystery</h4>
+                <p class="font-caption text-[11px] text-on-surface-variant leading-snug">
+                  Atmospheric beds, subtle foley & digital glitches.
+                </p>
+              </div>
+            </div>
+
+            <!-- Preset 3: Viral Social -->
+            <div onclick="selectPreset('viral')" id="preset-viral" class="preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-outline-variant/20 hover:border-outline-variant/50 hover:-translate-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-label-mono text-xs text-secondary font-bold tracking-widest">03</span>
+                <button type="button" onclick="previewPresetSound('assets/sfx/whooshes/whoosh_01.wav', event)" class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary" title="Audition Preset">
+                  <span class="material-symbols-outlined text-[16px]">volume_up</span>
+                </button>
+              </div>
+              <div>
+                <h4 class="font-headline-sm text-sm font-bold text-on-surface mb-0.5">Viral Social</h4>
+                <p class="font-caption text-[11px] text-on-surface-variant leading-snug">
+                  Fast swooshes, punchy transitions & reward chimes.
+                </p>
+              </div>
+            </div>
+
+            <!-- Preset 4: Subtle Ambient -->
+            <div onclick="selectPreset('subtle')" id="preset-subtle" class="preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-outline-variant/20 hover:border-outline-variant/50 hover:-translate-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-label-mono text-xs text-secondary font-bold tracking-widest">04</span>
+                <button type="button" onclick="previewPresetSound('assets/sfx/transitions/transition_01.wav', event)" class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary" title="Audition Preset">
+                  <span class="material-symbols-outlined text-[16px]">volume_up</span>
+                </button>
+              </div>
+              <div>
+                <h4 class="font-headline-sm text-sm font-bold text-on-surface mb-0.5">Subtle Ambient</h4>
+                <p class="font-caption text-[11px] text-on-surface-variant leading-snug">
+                  Low background score & organic sound effects.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="pt-4 space-y-3">
+          <div id="session-error-alert" class="hidden p-3 rounded-xl bg-error/10 border border-error/20 text-xs text-error flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">error</span>
+            <span id="session-error-text">Upload failed</span>
+          </div>
+
+          <button onclick="startAnalysisWorkflow()" id="btn-start-analyze" class="w-full h-14 text-base font-bold bg-primary hover:bg-primary/90 text-on-primary rounded-xl shadow-xl shadow-primary/20 cursor-pointer transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+            <span>Generate Sound Design Timeline</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- VIEW 2: SEMANTIC ANALYSIS IN-PROGRESS (Design 0 / 5)                    -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="view-analysis" class="hidden relative pt-20 pb-8 px-6 max-w-[1380px] mx-auto w-full flex-1 flex flex-col justify-center">
+      <div class="flex flex-col w-full h-[calc(100vh-108px)] bg-background text-on-surface select-none overflow-hidden rounded-2xl border border-outline-variant/15 shadow-2xl">
+        <!-- Top Action Bar -->
+        <div class="flex items-center justify-between px-6 py-4 bg-surface border-b border-outline-variant/10">
+          <div class="flex items-center gap-3">
+            <div class="relative w-8 h-8 rounded-full bg-surface-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-sm text-primary animate-pulse">memory</span>
+              <div class="absolute inset-0 border-2 border-primary/30 rounded-full animate-ping"></div>
+            </div>
+            <div>
+              <h2 class="font-headline-sm text-base text-on-surface leading-tight font-bold">
+                Semantic Sound Analysis Active
+              </h2>
+              <p class="font-caption text-xs text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+                <span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+                <span>AI Audio Engine v4.2 • Processing</span>
+                <span class="font-label-mono text-primary font-bold" id="analysis-filename-label">video.mp4</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <div class="flex flex-col items-end">
+              <span class="font-label-mono text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">
+                Overall Progress
+              </span>
+              <div class="flex items-center gap-3">
+                <div class="w-40 h-2 bg-surface-container rounded-full overflow-hidden">
+                  <div id="analysis-progress-bar" class="h-full bg-gradient-to-r from-primary-container via-primary to-secondary transition-all duration-500 w-[15%]"></div>
+                </div>
+                <span class="font-timecode text-xs font-bold text-primary" id="analysis-progress-text">15%</span>
+              </div>
+            </div>
+
+            <button onclick="abortAnalysis()" class="px-4 py-2 rounded-xl bg-error/10 hover:bg-error/20 text-error font-bold text-xs flex items-center gap-1.5 transition-colors border border-error/20 cursor-pointer">
+              <span class="material-symbols-outlined text-sm">stop_circle</span> Abort
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Workspace Grid -->
+        <div class="flex-1 grid grid-cols-12 gap-[1px] bg-outline-variant/10 overflow-hidden">
+          <!-- Left Column: Script Transcription Stream -->
+          <div class="col-span-4 bg-surface-dim flex flex-col h-full border-r border-outline-variant/10">
+            <div class="px-5 py-3 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
+              <h3 class="font-label-mono text-xs text-on-surface-variant uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                <span class="material-symbols-outlined text-xs text-primary">subtitles</span> Transcription Stream
+              </h3>
+              <span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-timecode text-[9px] border border-primary/20 font-bold">LIVE</span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-5 space-y-3 font-label-mono text-xs" id="analysis-subtitles-stream">
+              <!-- Live subtitle items dynamically updated -->
+            </div>
+          </div>
+
+          <!-- Center Column: Radar Waveform Scanner -->
+          <div class="col-span-5 bg-surface flex flex-col h-full items-center justify-center p-6 relative">
+            <div class="w-full aspect-video rounded-2xl bg-surface-container-lowest border border-outline-variant/20 flex flex-col items-center justify-center p-6 relative overflow-hidden shadow-2xl">
+              <!-- Radar Pulse Animation -->
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="w-48 h-48 rounded-full border border-primary/20 animate-pulse-ring"></div>
+                <div class="w-72 h-72 rounded-full border border-secondary/15 animate-pulse-ring" style="animation-delay: 0.8s;"></div>
+              </div>
+
+              <span class="material-symbols-outlined text-[48px] text-primary mb-3 animate-pulse">graphic_eq</span>
+              <h4 class="font-headline-sm text-sm text-white font-bold mb-1">
+                Synthesizing Multi-Stem Audio Layers
+              </h4>
+              <p class="font-caption text-xs text-on-surface-variant text-center max-w-xs">
+                Matching narrative inflections with 48kHz acoustic textures and tension drops.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right Column: Placed SFX Queue -->
+          <div class="col-span-3 bg-surface-dim flex flex-col h-full border-l border-outline-variant/10">
+            <div class="px-5 py-3 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
+              <h3 class="font-label-mono text-xs text-on-surface-variant uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                <span class="material-symbols-outlined text-xs text-secondary">layers</span> Placed SFX Queue
+              </h3>
+              <span class="font-label-mono text-[10px] text-tertiary font-bold">48kHz</span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-2.5" id="analysis-events-queue">
+              <!-- Dynamically placed SFX badges -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- VIEW 3: DAW STUDIO WORKSTATION & TIMELINE (Design 2 / 4)                -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="view-studio" class="hidden relative pt-16 flex-1 flex flex-col h-[calc(100vh-64px)] overflow-hidden">
+      <!-- Top Half: Video Player (Left) + Inspector (Right) -->
+      <div class="flex-1 grid grid-cols-12 gap-4 p-4 min-h-0 overflow-hidden">
+        <!-- Video Player Frame -->
+        <div class="col-span-7 flex flex-col bg-surface-container-lowest rounded-xl border border-outline-variant/15 overflow-hidden shadow-2xl relative group">
+          <div class="relative w-full flex-1 bg-black flex items-center justify-center overflow-hidden">
+            <video id="studio-video" class="w-full h-full object-contain" playsinline preload="auto" ontimeupdate="onVideoTimeUpdate()" onloadedmetadata="onVideoLoaded()"></video>
+
+            <!-- Big Center Play Button Overlay -->
+            <button onclick="toggleVideoPlay()" id="video-center-play-btn" class="absolute w-16 h-16 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-all shadow-[0_0_24px_rgba(192,193,255,0.3)] z-10 group-hover:scale-110 cursor-pointer">
+              <span class="material-symbols-outlined text-[32px]">play_arrow</span>
+            </button>
+
+            <!-- Bottom Video Badges Overlay -->
+            <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center pointer-events-none z-10">
+              <div class="bg-surface-container-highest/80 backdrop-blur-md px-3 py-1 rounded text-primary font-timecode text-xs shadow-lg pointer-events-auto" id="video-timecode-badge">
+                00:00:00:00
+              </div>
+              <button onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded bg-surface-container-highest/80 backdrop-blur-md flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors pointer-events-auto cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">fullscreen</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Video Transport Bar Anchored Below Canvas -->
+          <div class="h-12 bg-surface-container-low px-4 flex items-center justify-between border-t border-outline-variant/10">
+            <div class="flex items-center gap-2">
+              <button onclick="skipVideo(-5)" class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Rewind 5s (J / Left)">
+                <span class="material-symbols-outlined text-[18px]">replay_5</span>
+              </button>
+              <button onclick="toggleVideoPlay()" id="transport-play-btn" class="w-8 h-8 rounded-lg flex items-center justify-center bg-primary text-on-primary hover:bg-primary/90 transition-all" title="Play / Pause (Space)">
+                <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              </button>
+              <button onclick="skipVideo(5)" class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Forward 5s (L / Right)">
+                <span class="material-symbols-outlined text-[18px]">forward_5</span>
+              </button>
+            </div>
+
+            <!-- Playback Speed -->
+            <div class="flex items-center gap-2">
+              <button onclick="toggleVideoMute()" id="btn-video-mute" class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Mute / Unmute (M)">
+                <span class="material-symbols-outlined text-[18px]">volume_up</span>
+              </button>
+              <select id="video-speed-select" onchange="setVideoSpeed(this.value)" class="bg-surface-container-highest text-on-surface font-label-mono text-xs rounded px-2 py-1 border-none outline-none cursor-pointer">
+                <option value="0.75">0.75x</option>
+                <option value="1.0" selected>1.0x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2.0">2.0x</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inspector Sidebar Panel -->
+        <div class="col-span-5 flex flex-col bg-surface-container-low rounded-xl border border-outline-variant/15 p-4 overflow-y-auto space-y-4 shadow-xl">
+          <div class="flex items-center justify-between border-b border-outline-variant/10 pb-3">
+            <h3 class="font-headline-sm text-sm font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm text-primary">tune</span> Clip Inspector
+            </h3>
+            <span class="font-label-mono text-[10px] text-tertiary font-bold" id="inspector-badge-type">NO CLIP SELECTED</span>
+          </div>
+
+          <div id="inspector-content-empty" class="flex flex-col items-center justify-center py-12 text-center text-on-surface-variant">
+            <span class="material-symbols-outlined text-[36px] mb-2 opacity-40">touch_app</span>
+            <p class="text-xs font-medium">Click any sound effect clip on the timeline</p>
+            <p class="text-[10px] opacity-60">Fine-tune gain, position, pitch and text cue</p>
+          </div>
+
+          <div id="inspector-content-filled" class="hidden space-y-4 font-body-base text-xs">
+            <!-- Label & Cue Snippet -->
+            <div class="space-y-1">
+              <label class="font-label-mono text-[10px] text-on-surface-variant uppercase">Sound Effect Label</label>
+              <input id="insp-label-input" type="text" onchange="onInspectorUpdate()" class="w-full bg-surface-container-lowest text-on-surface font-bold text-xs p-2 rounded-lg border border-outline-variant/20 focus:ring-1 focus:ring-primary outline-none"/>
+            </div>
+
+            <!-- Position & Gain Side-by-Side -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="font-label-mono text-[10px] text-on-surface-variant uppercase">Timestamp (s)</label>
+                <input id="insp-pos-input" type="number" step="0.05" onchange="onInspectorUpdate()" class="w-full bg-surface-container-lowest text-primary font-timecode text-xs p-2 rounded-lg border border-outline-variant/20 outline-none"/>
+              </div>
+              <div class="space-y-1">
+                <label class="font-label-mono text-[10px] text-on-surface-variant uppercase">Volume Gain</label>
+                <div class="flex items-center gap-2">
+                  <input id="insp-gain-slider" type="range" min="0.05" max="1.5" step="0.05" oninput="onInspectorGainChange(this.value)" class="flex-1"/>
+                  <span id="insp-gain-text" class="font-timecode text-xs text-white font-bold w-10 text-right">0.75</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Audition Audio Strip -->
+            <div class="p-3 rounded-xl bg-surface-container border border-outline-variant/10 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <button type="button" onclick="auditionInspectorSound()" class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center hover:scale-105 transition-all">
+                  <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+                </button>
+                <div>
+                  <p class="font-bold text-white text-xs truncate max-w-[180px]" id="insp-filename-text">impact_01.wav</p>
+                  <p class="text-[10px] text-on-surface-variant font-label-mono" id="insp-cue-text">Narrative Cue</p>
+                </div>
+              </div>
+              <button onclick="deleteInspectorClip()" class="px-2.5 py-1 rounded bg-error/10 hover:bg-error/20 text-error font-label-mono text-[10px] font-bold border border-error/20" title="Delete Clip (Delete)">
+                DELETE
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Half: Full-Width DAW Timeline -->
+      <div class="h-[44%] bg-surface-container-low flex flex-col relative border-t border-outline-variant/15 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-30">
+        <!-- Ruler Bar & Transport -->
+        <div class="h-ruler-height bg-surface-container flex border-b border-outline-variant/10 items-center justify-between px-4 relative select-none">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center bg-surface-container-lowest rounded-md overflow-hidden border border-outline-variant/15">
+              <button onclick="seekVideo(0)" class="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors" title="Go to Start">
+                <span class="material-symbols-outlined text-[16px]">skip_previous</span>
+              </button>
+              <button onclick="toggleVideoPlay()" class="w-8 h-7 flex items-center justify-center text-on-primary bg-primary hover:bg-primary/90 transition-colors shadow-sm" title="Play/Pause">
+                <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              </button>
+            </div>
+            <div class="font-timecode text-xs text-primary bg-surface-container-lowest px-3 py-0.5 rounded border border-outline-variant/20 tracking-wider font-bold" id="timeline-ruler-timecode">
+              00:00:00:00
+            </div>
+          </div>
+
+          <!-- Timeline Timecode Scale Labels -->
+          <div class="absolute left-header-width right-48 h-full overflow-hidden flex cursor-pointer" id="timeline-ruler-scale" onclick="onTimelineRulerClick(event)">
+            <!-- Ruler seconds tick markings populated by JS -->
+          </div>
+
+          <!-- Zoom & Snap Controls -->
+          <div class="flex items-center gap-3 z-10 bg-surface-container pl-2">
+            <button onclick="toggleSnap()" id="btn-timeline-snap" class="text-primary hover:text-primary-fixed transition-colors flex items-center justify-center p-1 rounded hover:bg-surface-container-high" title="Toggle Magnetic Snapping">
+              <span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+            </button>
+            <div class="flex items-center gap-1.5 font-label-mono text-[10px] text-on-surface-variant">
+              <span>ZOOM</span>
+              <input type="range" id="timeline-zoom-slider" min="0.5" max="3.0" step="0.1" value="1.0" oninput="onTimelineZoomChange(this.value)" class="w-20"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tracks Lane Area -->
+        <div class="flex-1 flex overflow-y-auto overflow-x-hidden relative bg-[#151517]" id="timeline-tracks-area">
+          <!-- Left Track Headers Column -->
+          <div class="w-header-width bg-surface-container-highest flex flex-col z-20 border-r border-outline-variant/20 shadow-[10px_0_20px_rgba(0,0,0,0.3)] shrink-0 select-none">
+            <!-- Header 1: Narration -->
+            <div class="h-track-height px-3 py-2 flex flex-col justify-center border-b border-outline-variant/10">
+              <div class="flex items-center justify-between w-full">
+                <span class="font-label-mono text-xs text-secondary truncate flex items-center gap-1.5 font-bold">
+                  <span class="w-2 h-2 rounded-full bg-secondary"></span> V1 Narration
+                </span>
+              </div>
+            </div>
+
+            <!-- Header 2: SFX -->
+            <div class="h-track-height px-3 py-2 flex flex-col justify-center border-b border-outline-variant/10">
+              <div class="flex items-center justify-between w-full">
+                <span class="font-label-mono text-xs text-primary truncate flex items-center gap-1.5 font-bold">
+                  <span class="w-2 h-2 rounded-full bg-primary"></span> A1 SFX
+                </span>
+              </div>
+            </div>
+
+            <!-- Header 3: Music Bed -->
+            <div class="h-track-height px-3 py-2 flex flex-col justify-center border-b border-outline-variant/10">
+              <div class="flex items-center justify-between w-full">
+                <span class="font-label-mono text-xs text-tertiary truncate flex items-center gap-1.5 font-bold">
+                  <span class="w-2 h-2 rounded-full bg-tertiary"></span> A2 Music
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Interactive Tracks Canvas -->
+          <div class="flex-1 relative overflow-x-auto overflow-y-hidden" id="timeline-lanes-container" onclick="onTimelineLanesClick(event)">
+            <!-- Vertical Playhead Line -->
+            <div id="timeline-playhead-line" class="absolute top-0 bottom-0 w-[2px] bg-primary z-30 pointer-events-none shadow-[0_0_8px_rgba(192,193,255,0.8)] left-0">
+              <div class="w-3 h-3 bg-primary rounded-full -ml-[5px] -mt-[6px]"></div>
+            </div>
+
+            <!-- Lane 1: Narration Cue Clips -->
+            <div class="h-track-height border-b border-outline-variant/10 relative bg-surface-container-lowest/30" id="lane-narration">
+              <!-- Rendered narration segment pills -->
+            </div>
+
+            <!-- Lane 2: Sound FX Clips -->
+            <div class="h-track-height border-b border-outline-variant/10 relative bg-surface-container-lowest/20" id="lane-sfx">
+              <!-- Rendered interactive SFX event clips -->
+            </div>
+
+            <!-- Lane 3: Music Bed -->
+            <div class="h-track-height border-b border-outline-variant/10 relative bg-surface-container-lowest/30" id="lane-music">
+              <!-- Music waveform bed -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- SLIDE-OUT SOUND LIBRARY DRAWER (Design 2 / 4)                           -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="sound-library-drawer" class="fixed right-0 top-0 bottom-0 w-drawer-width bg-surface/95 backdrop-blur-xl flex flex-col z-50 border-l border-outline-variant/15 shadow-2xl transition-transform duration-300 transform translate-x-full">
+      <div class="p-4 flex items-center justify-between border-b border-outline-variant/10 bg-surface-container-low">
+        <h2 class="font-headline-sm text-sm font-bold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[20px]">library_music</span>
+          Sound Design Library
+        </h2>
+        <button onclick="toggleLibraryDrawer()" class="text-on-surface-variant hover:text-white p-1 rounded-lg hover:bg-surface-container-high">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="p-3 bg-surface-container-low border-b border-outline-variant/10">
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[16px]">search</span>
+          <input id="library-search-input" oninput="filterSoundLibrary()" class="w-full bg-surface-container-lowest text-on-surface font-body-base text-xs py-2 pl-9 pr-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-on-surface-variant/50 border border-outline-variant/15" placeholder="Search FX, Foley, Stems..." type="text"/>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="px-3 py-2 flex gap-1.5 overflow-x-auto custom-scrollbar bg-surface-container-low border-b border-outline-variant/10" id="library-category-pills">
+        <button onclick="filterCategory('all')" class="cat-pill px-3 py-1 rounded-full bg-primary text-on-primary font-label-mono text-[10px] font-bold whitespace-nowrap shadow-sm">All</button>
+        <button onclick="filterCategory('impact')" class="cat-pill px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest font-label-mono text-[10px] font-bold whitespace-nowrap">Impacts</button>
+        <button onclick="filterCategory('boom')" class="cat-pill px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest font-label-mono text-[10px] font-bold whitespace-nowrap">Booms</button>
+        <button onclick="filterCategory('riser')" class="cat-pill px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest font-label-mono text-[10px] font-bold whitespace-nowrap">Risers</button>
+        <button onclick="filterCategory('glitch')" class="cat-pill px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest font-label-mono text-[10px] font-bold whitespace-nowrap">Glitches</button>
+        <button onclick="filterCategory('whoosh')" class="cat-pill px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest font-label-mono text-[10px] font-bold whitespace-nowrap">Whooshes</button>
+        <button onclick="filterCategory('transition')" class="cat-pill px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest font-label-mono text-[10px] font-bold whitespace-nowrap">Transitions</button>
+      </div>
+
+      <!-- Audio Items List -->
+      <div class="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar" id="library-items-list">
+        <!-- Dynamically rendered SFX cards -->
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- AUDIO MIXDOWN & EXPORT MODAL (Design 3 / 6)                             -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="mixdown-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden p-4">
+      <div class="w-full max-w-3xl bg-surface-container rounded-2xl border border-outline-variant/20 text-on-surface shadow-2xl p-6 select-none animate-in zoom-in-95 duration-200">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-outline-variant/15 pb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined text-[18px]">download</span>
+            </div>
+            <div>
+              <h3 class="font-headline-sm text-base font-bold text-white">Audio Mixdown & Video Export</h3>
+              <p class="font-caption text-xs text-on-surface-variant">Configure multi-track bus levels, ducking, and render settings.</p>
+            </div>
+          </div>
+          <button onclick="closeMixdownModal()" class="text-on-surface-variant hover:text-white p-1 rounded-lg hover:bg-surface-container-high">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <!-- 2-Column Mixdown Matrix -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4">
+          <!-- Left 7 Columns: Stems Mixer -->
+          <div class="md:col-span-7 space-y-3">
+            <h4 class="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs text-primary">tune</span> Multi-Track Stem Mixdown
+            </h4>
+
+            <!-- Dialogue Stem -->
+            <div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant/10 space-y-1.5">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-secondary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-xs">record_voice_over</span> Dialogue.wav
+                </span>
+                <span class="font-timecode text-secondary" id="mix-dialogue-vol-text">85%</span>
+              </div>
+              <input type="range" id="mix-dialogue-vol" min="0" max="100" value="85" oninput="document.getElementById('mix-dialogue-vol-text').innerText = this.value + '%'" class="w-full"/>
+            </div>
+
+            <!-- Music Stem -->
+            <div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant/10 space-y-1.5">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-tertiary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-xs">music_note</span> Ambient_Score.wav
+                </span>
+                <span class="font-timecode text-tertiary" id="mix-music-vol-text">60%</span>
+              </div>
+              <input type="range" id="mix-music-vol" min="0" max="100" value="60" oninput="document.getElementById('mix-music-vol-text').innerText = this.value + '%'" class="w-full"/>
+            </div>
+
+            <!-- SFX Stem -->
+            <div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant/10 space-y-1.5">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-primary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-xs">explosion</span> SFX_Layer
+                </span>
+                <span class="font-timecode text-primary" id="mix-sfx-vol-text">75%</span>
+              </div>
+              <input type="range" id="mix-sfx-vol" min="0" max="100" value="75" oninput="document.getElementById('mix-sfx-vol-text').innerText = this.value + '%'" class="w-full"/>
+            </div>
+          </div>
+
+          <!-- Right 5 Columns: Render Target & Action -->
+          <div class="md:col-span-5 bg-surface-container-low rounded-xl p-4 border border-outline-variant/10 flex flex-col justify-between space-y-4">
+            <div class="space-y-3">
+              <h4 class="font-headline-sm text-xs font-bold text-on-surface uppercase tracking-wider">Render Target</h4>
+
+              <div class="space-y-1">
+                <label class="font-label-mono text-[10px] text-on-surface-variant uppercase">Resolution</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button id="res-1080p" onclick="setExportResolution('1080p')" class="py-1.5 rounded-lg text-xs font-bold bg-primary-container text-on-primary-container font-label-mono">1080p HD</button>
+                  <button id="res-4k" onclick="setExportResolution('4K')" class="py-1.5 rounded-lg text-xs font-bold bg-surface-container text-on-surface-variant font-label-mono">4K UHD</button>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-lg bg-surface-container flex items-center justify-between text-xs font-label-mono">
+                <span class="text-on-surface-variant">Est. File Size:</span>
+                <span class="text-primary font-bold" id="export-est-size">45 MB</span>
+              </div>
+            </div>
+
+            <!-- Export Progress & Download Button -->
+            <div class="space-y-2 pt-2">
+              <div id="export-progress-box" class="hidden space-y-1.5">
+                <div class="flex justify-between text-xs font-label-mono">
+                  <span class="text-primary font-bold" id="export-stage-text">Rendering FFmpeg...</span>
+                  <span class="text-primary font-bold" id="export-progress-percent">0%</span>
+                </div>
+                <div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                  <div id="export-progress-bar" class="h-full bg-gradient-to-r from-primary via-secondary to-tertiary w-0 transition-all duration-300"></div>
+                </div>
+              </div>
+
+              <button onclick="triggerFFmpegExport()" id="btn-export-start" class="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">download</span> Start High-Definition Export
+              </button>
+
+              <a id="btn-export-download" href="#" download="auto_audio_sound_design.mp4" class="hidden w-full h-11 rounded-xl bg-tertiary hover:bg-tertiary/90 text-on-tertiary font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-tertiary/20">
+                <span class="material-symbols-outlined text-[18px]">check_circle</span> Download Rendered MP4
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- SHORTCUTS MODAL (?)                                                    -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="shortcuts-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden p-4">
+      <div class="w-full max-w-md bg-surface-container rounded-2xl border border-outline-variant/20 p-6 text-on-surface shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-outline-variant/15 pb-3">
+          <h3 class="font-headline-sm text-sm font-bold text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[18px]">keyboard</span> Keyboard Shortcuts
+          </h3>
+          <button onclick="closeShortcutsModal()" class="text-on-surface-variant hover:text-white">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <div class="space-y-2 text-xs font-body-base">
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/10">
+            <span class="text-on-surface-variant">Play / Pause Video</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-container-highest font-timecode text-primary font-bold">Space</kbd>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/10">
+            <span class="text-on-surface-variant">Seek -5s / +5s</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-container-highest font-timecode text-primary font-bold">← / →</kbd>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/10">
+            <span class="text-on-surface-variant">Delete Selected Clip</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-container-highest font-timecode text-primary font-bold">Del / Backspace</kbd>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/10">
+            <span class="text-on-surface-variant">Toggle Sound Library</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-container-highest font-timecode text-primary font-bold">L</kbd>
+          </div>
+          <div class="flex justify-between items-center py-1">
+            <span class="text-on-surface-variant">Toggle Mute / Unmute</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-container-highest font-timecode text-primary font-bold">M</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  </div>
+
+  <!-- Application Logic -->
+  <script src="/app.js"></script>
+</body>
+</html>
