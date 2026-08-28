@@ -127,20 +127,15 @@ def _apply_rules(text: str) -> Optional[ContentTag]:
 async def _classify_with_gemini(
     segments: List[SRTSegment],
 ) -> Dict[int, Tuple[ContentTag, float]]:
-    """Send untagged segments to Gemini for semantic classification."""
+    """Send untagged segments to Gemini REST API for semantic classification."""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         return {}
 
-    try:
-        import google.generativeai as genai
+    all_tags = [t.value for t in ContentTag]
+    seg_lines = "\n".join(f'{s.id}: "{s.text}"' for s in segments)
 
-        genai.configure(api_key=api_key)
-
-        all_tags = [t.value for t in ContentTag]
-        seg_lines = "\n".join(f'{s.id}: "{s.text}"' for s in segments)
-
-        prompt = f"""You are a video script sound-design analyst.
+    prompt = f"""You are a video script sound-design analyst.
 Classify each numbered subtitle segment with exactly ONE tag from this list:
 
 HOOK          - Attention-grabbing opener ("What if I told you", "Most people don't know")
@@ -160,32 +155,38 @@ Segments to classify:
 Reply ONLY with a JSON object mapping segment ID (string) to tag (string).
 Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
 
-        model_candidates = [
-            os.getenv("GEMINI_MODEL", "").strip(),
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-latest",
-            "gemini-2.0-flash-exp",
-            "gemini-1.5-pro",
+    model_name = os.getenv("GEMINI_MODEL", "gemini-flash-latest").strip()
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
         ]
-        model_candidates = [m for m in model_candidates if m]
+    }
 
-        loop = asyncio.get_event_loop()
-        response = None
-        for m_name in model_candidates:
-            try:
-                model = genai.GenerativeModel(m_name)
-                response = await loop.run_in_executor(
-                    None, lambda: model.generate_content(prompt)
-                )
-                if response and hasattr(response, "text") and response.text:
-                    break
-            except Exception as m_err:
-                continue
+    import urllib.request
+    import urllib.error
 
-        if not response or not hasattr(response, "text") or not response.text:
-            return {}
+    def _call_gemini_rest():
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "X-goog-api-key": api_key,
+            },
+        )
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            return json.loads(resp.read().decode("utf-8"))
 
-        raw_text = response.text.strip()
+    loop = asyncio.get_event_loop()
+    try:
+        data = await loop.run_in_executor(None, _call_gemini_rest)
+        raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
         json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
         if not json_match:
             return {}
@@ -202,7 +203,7 @@ Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
         return result
 
     except Exception as exc:
-        print(f"[analyzer] Gemini classification error: {exc}")
+        print(f"[analyzer] Gemini classification note: {exc} (using local regex/heuristics engine)")
         return {}
 
 
