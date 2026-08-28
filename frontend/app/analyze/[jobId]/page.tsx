@@ -3,6 +3,37 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { apiUrl } from "../../lib/api";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Trash2,
+  Plus,
+  Search,
+  Download,
+  Film,
+  Music,
+  Mic,
+  Sparkles,
+  Sliders,
+  RotateCcw,
+  FastForward,
+  Rewind,
+  X,
+  Check,
+  FolderPlus,
+  Clock,
+  Layers,
+  ArrowLeft,
+} from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface SFXEvent {
@@ -48,7 +79,6 @@ interface SFXLibraryItem {
   mood: string[];
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function formatTs(sec: number): string {
   if (isNaN(sec) || sec < 0) sec = 0;
   const m = Math.floor(sec / 60);
@@ -85,10 +115,10 @@ const SFX_ICONS: Record<string, string> = {
   drop: "🔇",
 };
 
-const MOOD_DESCRIPTIONS: Record<string, string> = {
-  dark_documentary: "Dark Documentary — tension & heavy drones",
-  mysterious: "Mysterious — atmospheric & intriguing pads",
-  upbeat: "Upbeat — high-energy & motivating rhythms",
+const MOOD_TITLES: Record<string, string> = {
+  dark_documentary: "Dark Documentary",
+  mysterious: "Mysterious Atmosphere",
+  upbeat: "Upbeat Energetic",
 };
 
 function toWebAssetUrl(localPath: string): string {
@@ -101,8 +131,7 @@ function toWebAssetUrl(localPath: string): string {
   return apiUrl(localPath);
 }
 
-// ── Main Studio Page ──────────────────────────────────────────────────────────
-export default function AnalyzePage() {
+export default function StudioPage() {
   const router = useRouter();
   const routeParams = useParams();
   const jobId = typeof routeParams?.jobId === "string" ? routeParams.jobId : "";
@@ -119,7 +148,7 @@ export default function AnalyzePage() {
   // Playback & Timing
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [zoom, setZoom] = useState(1); // 1x to 4x
+  const [zoom, setZoom] = useState(1);
 
   // Audio Previews
   const [previewAudioPath, setPreviewAudioPath] = useState<string | null>(null);
@@ -136,16 +165,14 @@ export default function AnalyzePage() {
   const [drawerCategory, setDrawerCategory] = useState("all");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Refs
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const timelineViewportRef = useRef<HTMLDivElement | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3200);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Load timeline data
+  // Load timeline
   useEffect(() => {
     if (!jobId) return;
     fetch(apiUrl(`/api/analyze/${jobId}`))
@@ -178,14 +205,14 @@ export default function AnalyzePage() {
 
   const dur = timeline?.video_duration ?? 60.0;
 
-  // Video time update handler
+  // Video time update
   const handleVideoTimeUpdate = () => {
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
     }
   };
 
-  // Master Play / Pause Toggle
+  // Play / Pause Toggle
   const togglePlay = useCallback(() => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) {
@@ -196,7 +223,7 @@ export default function AnalyzePage() {
     }
   }, []);
 
-  // Keyboard shortcuts (Space = Play/Pause, Arrows = Seek)
+  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)) {
@@ -220,7 +247,6 @@ export default function AnalyzePage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [togglePlay, currentTime, dur]);
 
-  // Seek video & playhead
   const seekTo = (timestamp: number, eventId?: string) => {
     const clamped = Math.max(0, Math.min(dur, timestamp));
     setCurrentTime(clamped);
@@ -232,7 +258,6 @@ export default function AnalyzePage() {
     }
   };
 
-  // Sound Effect Audio Preview
   const playAudioPreview = (path: string) => {
     const url = toWebAssetUrl(path);
     if (!url) return;
@@ -257,7 +282,6 @@ export default function AnalyzePage() {
     audio.play().catch(() => setPreviewAudioPath(null));
   };
 
-  // Insert Sound Effect from Drawer
   const insertSoundEffect = (item: SFXLibraryItem) => {
     const path = `assets/sfx/${item.folder}/${item.filename}`;
     const newEvent: SFXEvent = {
@@ -274,24 +298,21 @@ export default function AnalyzePage() {
     setEvents((prev) => [...prev, newEvent].sort((a, b) => a.timestamp - b.timestamp));
     setSelectedEventId(newEvent.id);
     playAudioPreview(path);
-    showToast(`✨ Added "${item.type.toUpperCase()}" at ${formatTs(currentTime)}`);
+    showToast(`Added ${item.type.toUpperCase()} at ${formatTs(currentTime)}`);
   };
 
-  // Delete event
   const handleDeleteEvent = (id: string) => {
     setEvents((prev) => prev.filter((e) => e.id !== id));
     if (selectedEventId === id) setSelectedEventId(null);
-    showToast("🗑️ Sound effect removed");
+    showToast("Sound effect removed");
   };
 
-  // Update volume
   const handleVolumeChange = (id: string, vol: number) => {
     setEvents((prev) =>
       prev.map((e) => (e.id === id ? { ...e, volume: vol } : e))
     );
   };
 
-  // Export video
   async function handleExport() {
     setExporting(true);
     setExportProgress(15);
@@ -299,8 +320,8 @@ export default function AnalyzePage() {
 
     try {
       const progressInterval = setInterval(() => {
-        setExportProgress((p) => Math.min(p + 8, 90));
-      }, 800);
+        setExportProgress((p) => Math.min(p + 8, 92));
+      }, 700);
 
       const res = await fetch(apiUrl(`/api/export/${jobId}`), {
         method: "POST",
@@ -331,7 +352,7 @@ export default function AnalyzePage() {
       URL.revokeObjectURL(url);
 
       setExportDone(true);
-      showToast("🎉 Video successfully rendered and downloaded!");
+      showToast("🎉 Video rendered and downloaded successfully!");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
       showToast("❌ Export failed");
@@ -340,12 +361,11 @@ export default function AnalyzePage() {
     }
   }
 
-  // Loading Screen
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#08090f]">
         <div className="spinner" style={{ width: 44, height: 44, borderWidth: 3 }} />
-        <p className="text-slate-400 text-sm font-medium">Opening Auto Audio Studio workspace…</p>
+        <p className="text-slate-400 text-sm font-medium">Opening Audio Studio Workspace...</p>
       </div>
     );
   }
@@ -362,87 +382,94 @@ export default function AnalyzePage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-[#08090f] text-slate-100 select-none">
-      {/* ── Top Header ── */}
-      <header className="h-14 px-6 flex items-center justify-between border-b border-white/5 bg-[#0a0c16] sticky top-0 z-40">
+      {/* ── Studio Header ── */}
+      <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-[#090b14]/90 backdrop-blur-xl sticky top-0 z-40">
         <div className="flex items-center gap-4">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push("/")}
-            className="text-xs font-semibold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
+            className="text-xs text-slate-400 hover:text-white"
           >
-            ← New Project
-          </button>
+            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> New Project
+          </Button>
+
           <div className="h-4 w-px bg-white/10" />
+
           <div className="flex items-center gap-2">
             <span
-              className="font-bold text-base tracking-tight"
+              className="font-bold text-base tracking-tight text-white"
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
               Auto<span className="text-indigo-400">Audio</span>
             </span>
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold">
-              Studio Pro
-            </span>
+            <Badge variant="default" className="text-[10px] font-mono px-2 py-0.5 uppercase">
+              {jobId.slice(0, 8)}
+            </Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Track Mute Toggles */}
-          <div className="flex items-center gap-3 bg-white/5 px-3 py-1 rounded-xl border border-white/10 text-xs">
-            <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
-              <input
-                type="checkbox"
-                className="custom-check"
+        <div className="flex items-center gap-3">
+          {/* Track Mutes */}
+          <div className="flex items-center gap-4 bg-white/[0.04] px-3.5 py-1.5 rounded-xl border border-white/8 text-xs">
+            <div className="flex items-center gap-2">
+              <Switch
                 checked={musicEnabled}
-                onChange={(e) => setMusicEnabled(e.target.checked)}
+                onCheckedChange={setMusicEnabled}
               />
-              Music ({musicEnabled ? "ON" : "OFF"})
-            </label>
+              <span className="text-slate-300 font-medium">Music</span>
+            </div>
             <div className="h-3 w-px bg-white/10" />
-            <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
-              <input
-                type="checkbox"
-                className="custom-check"
+            <div className="flex items-center gap-2">
+              <Switch
                 checked={sfxEnabled}
-                onChange={(e) => setSfxEnabled(e.target.checked)}
+                onCheckedChange={setSfxEnabled}
               />
-              SFX ({events.length})
-            </label>
+              <span className="text-slate-300 font-medium">SFX ({events.length})</span>
+            </div>
           </div>
 
-          {/* Sound Library Drawer Toggle */}
-          <button
+          {/* Sound Library Button */}
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setShowDrawer(true)}
-            className="btn-secondary px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5"
+            className="text-xs"
           >
-            <span>📁</span> Sound Library (103)
-          </button>
+            <FolderPlus className="w-3.5 h-3.5 mr-1.5 text-indigo-400" /> Sound Library
+          </Button>
 
-          {/* Export Button */}
-          <button
-            id="export-btn"
+          {/* Export Action */}
+          <Button
+            variant="gradient"
+            size="sm"
             onClick={handleExport}
             disabled={exporting}
-            className="btn-primary px-5 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20"
+            className="text-xs px-5 shadow-lg shadow-indigo-500/20"
           >
             {exporting ? (
               <>
-                <span className="spinner" style={{ width: 14, height: 14 }} />
-                <span>Exporting ({exportProgress}%)…</span>
+                <span className="spinner mr-1.5" style={{ width: 14, height: 14 }} />
+                <span>Exporting ({exportProgress}%)</span>
               </>
             ) : exportDone ? (
-              "✓ Re-download Video"
+              <>
+                <Check className="w-3.5 h-3.5 mr-1.5 text-emerald-400" /> Re-download Video
+              </>
             ) : (
-              "Render & Export ➔"
+              <>
+                <Download className="w-3.5 h-3.5 mr-1.5" /> Export Video
+              </>
             )}
-          </button>
+          </Button>
         </div>
       </header>
 
-      {/* ── Main Split View (Video Preview + Sound Inspector) ── */}
+      {/* ── Studio Split View (Video Player + Tabbed Inspector) ── */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-hidden">
-        {/* ── Left Pane: Video Player Viewport (7 cols) ── */}
+        {/* Left: Video Player (7 Columns) */}
         <div className="lg:col-span-7 flex flex-col gap-3">
-          <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black/80 border border-white/10 shadow-2xl flex items-center justify-center group">
+          <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl flex items-center justify-center group">
             <video
               ref={videoRef}
               src={apiUrl(`/uploads/${jobId}/video.mp4`)}
@@ -452,61 +479,66 @@ export default function AnalyzePage() {
               className="w-full h-full object-contain"
             />
 
-            {/* Video overlay play button */}
             {!isPlaying && (
               <button
                 onClick={togglePlay}
-                className="absolute inset-0 m-auto w-16 h-16 rounded-2xl bg-indigo-600/90 text-white text-2xl flex items-center justify-center backdrop-blur-md shadow-2xl shadow-indigo-500/40 hover:scale-110 transition-transform"
+                className="absolute inset-0 m-auto w-16 h-16 rounded-2xl bg-indigo-600/90 hover:bg-indigo-500 text-white text-2xl flex items-center justify-center backdrop-blur-md shadow-2xl shadow-indigo-500/40 hover:scale-105 transition-all cursor-pointer"
               >
-                ▶
+                <Play className="w-7 h-7 fill-white ml-0.5" />
               </button>
             )}
 
-            {/* Timecode overlay HUD */}
-            <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 font-mono text-xs text-indigo-300 font-bold flex items-center gap-2">
+            {/* Timecode HUD */}
+            <div className="absolute top-4 left-4 px-3 py-1 rounded-xl bg-black/70 backdrop-blur-md border border-white/10 font-mono text-xs text-indigo-300 font-bold flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${isPlaying ? "bg-red-500 animate-ping" : "bg-slate-500"}`} />
               {formatTs(currentTime)} / {formatTs(dur)}
             </div>
           </div>
 
           {/* Quick Playback Bar */}
-          <div className="glass rounded-xl px-4 py-2 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
+          <div className="flex items-center justify-between p-2 px-4 rounded-xl bg-white/[0.03] border border-white/8">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => seekTo(Math.max(0, currentTime - 5))}
-                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-white/5"
-                title="Rewind 5s"
+                className="h-8 px-2.5 text-xs text-slate-400 hover:text-white"
               >
-                ⏪ -5s
-              </button>
-              <button
+                <Rewind className="w-3.5 h-3.5 mr-1" /> -5s
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={togglePlay}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold transition-all"
+                className="h-8 w-8 p-0 rounded-lg"
               >
-                {isPlaying ? "⏸" : "▶"}
-              </button>
-              <button
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-white ml-0.5" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => seekTo(Math.min(dur, currentTime + 5))}
-                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-white/5"
-                title="Forward 5s"
+                className="h-8 px-2.5 text-xs text-slate-400 hover:text-white"
               >
-                +5s ⏩
-              </button>
+                +5s <FastForward className="w-3.5 h-3.5 ml-1" />
+              </Button>
             </div>
 
             <span className="text-xs font-mono text-slate-400">
-              {events.length} Sound Effects • {musicConfig ? MOOD_DESCRIPTIONS[musicConfig.mood]?.split(" — ")[0] : "No Music"}
+              {events.length} SFX Events • {musicConfig ? MOOD_TITLES[musicConfig.mood] ?? musicConfig.mood : "No Music"}
             </span>
 
             {/* Zoom Controls */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Zoom</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] uppercase font-bold text-slate-500 mr-1">Zoom</span>
               {[1, 1.5, 2].map((z) => (
                 <button
                   key={z}
                   onClick={() => setZoom(z)}
-                  className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold transition-colors ${
-                    zoom === z ? "bg-indigo-500 text-white" : "bg-white/5 text-slate-400 hover:text-white"
+                  className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold transition-all cursor-pointer ${
+                    zoom === z
+                      ? "bg-indigo-600 text-white"
+                      : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   {z}x
@@ -516,142 +548,175 @@ export default function AnalyzePage() {
           </div>
         </div>
 
-        {/* ── Right Pane: Inspector & Sound Event Details (5 cols) ── */}
-        <div className="lg:col-span-5 flex flex-col gap-4 overflow-y-auto max-h-[480px] pr-1">
-          {/* Selected SFX Inspector Card */}
-          {selectedEvent ? (
-            <div className="glass glass-glow rounded-2xl p-5 border-indigo-500/30 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{SFX_ICONS[selectedEvent.sfx_type] ?? "🔊"}</span>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                      <span>{selectedEvent.label}</span>
-                      <span className="text-xs font-mono px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300">
-                        {formatTs(selectedEvent.timestamp)}
-                      </span>
-                    </h3>
-                    <p className="text-xs text-slate-400 truncate max-w-[200px] mt-0.5">
-                      {selectedEvent.sfx_path.split(/[\\/]/).pop()}
-                    </p>
+        {/* Right: Tabbed Inspector (5 Columns) */}
+        <div className="lg:col-span-5 flex flex-col overflow-hidden">
+          <Tabs defaultValue="inspector" className="flex-1 flex flex-col">
+            <TabsList className="w-full grid grid-cols-3 mb-3">
+              <TabsTrigger value="inspector">Inspector</TabsTrigger>
+              <TabsTrigger value="music">Music Bed</TabsTrigger>
+              <TabsTrigger value="script">Script Tags</TabsTrigger>
+            </TabsList>
+
+            {/* Tab 1: Inspector */}
+            <TabsContent value="inspector" className="flex-1 overflow-y-auto space-y-4 m-0">
+              {selectedEvent ? (
+                <Card className="p-5 space-y-4 border-indigo-500/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">{SFX_ICONS[selectedEvent.sfx_type] ?? "🔊"}</div>
+                      <div>
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <span>{selectedEvent.label}</span>
+                          <Badge variant="default" className="text-[10px] font-mono">
+                            {formatTs(selectedEvent.timestamp)}
+                          </Badge>
+                        </CardTitle>
+                        <CardDescription className="truncate max-w-[200px] mt-0.5">
+                          {selectedEvent.sfx_path.split(/[\\/]/).pop()}
+                        </CardDescription>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => playAudioPreview(selectedEvent.sfx_path)}
+                        className="h-8 px-2.5 text-xs"
+                      >
+                        {previewAudioPath === selectedEvent.sfx_path ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteEvent(selectedEvent.id)}
+                        className="h-8 px-2.5 text-xs"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => playAudioPreview(selectedEvent.sfx_path)}
-                    className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 flex items-center justify-center text-xs"
-                    title="Play Preview"
-                  >
-                    {previewAudioPath === selectedEvent.sfx_path ? "⏸" : "▶"}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteEvent(selectedEvent.id)}
-                    className="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center text-xs"
-                    title="Delete Event"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-
-              {/* Subtitle Snippet */}
-              <div className="p-3 rounded-xl bg-black/40 border border-white/5 text-xs text-slate-300 italic">
-                &quot;{selectedEvent.text_snippet}&quot;
-              </div>
-
-              {/* Volume Slider */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-mono">
-                  <span className="text-slate-400">SFX Gain / Volume</span>
-                  <span className="text-indigo-300 font-bold">
-                    {Math.round(selectedEvent.volume * 100)}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={Math.round(selectedEvent.volume * 100)}
-                  onChange={(e) => handleVolumeChange(selectedEvent.id, parseInt(e.target.value) / 100)}
-                  className="slider"
-                  style={{ "--pct": `${Math.round(selectedEvent.volume * 100)}%` } as React.CSSProperties}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="glass rounded-2xl p-6 text-center text-slate-500">
-              <p className="text-xs">Select any sound clip on the timeline below to edit its properties</p>
-            </div>
-          )}
-
-          {/* Background Music Card */}
-          {musicConfig && (
-            <div className="glass rounded-2xl p-4 border-violet-500/20 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xl">🎵</span>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-200">
-                      {MOOD_DESCRIPTIONS[musicConfig.mood] ?? musicConfig.mood}
-                    </h4>
-                    <p className="text-[10px] text-slate-400 font-mono truncate max-w-[200px]">
-                      {musicConfig.track_path.split(/[\\/]/).pop()}
-                    </p>
+                  {/* Subtitle context quote */}
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/5 text-xs text-slate-300 italic">
+                    &quot;{selectedEvent.text_snippet}&quot;
                   </div>
-                </div>
-                <button
-                  onClick={() => playAudioPreview(musicConfig.track_path)}
-                  className="w-7 h-7 rounded-lg bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 flex items-center justify-center text-xs"
+
+                  {/* Volume Slider */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs font-mono">
+                      <span className="text-slate-400 font-semibold">Volume Gain</span>
+                      <span className="text-indigo-300 font-bold">{Math.round(selectedEvent.volume * 100)}%</span>
+                    </div>
+                    <Slider
+                      value={[selectedEvent.volume * 100]}
+                      max={100}
+                      step={1}
+                      onValueChange={(val) => handleVolumeChange(selectedEvent.id, val[0] / 100)}
+                    />
+                  </div>
+                </Card>
+              ) : (
+                <Card className="p-8 text-center text-slate-500">
+                  <Layers className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  <p className="text-xs">Click any sound clip on the timeline below to inspect and edit volume</p>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Tab 2: Music Bed */}
+            <TabsContent value="music" className="flex-1 overflow-y-auto space-y-4 m-0">
+              {musicConfig ? (
+                <Card className="p-5 space-y-4 border-violet-500/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                        <Music className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-sm text-violet-200">
+                          {MOOD_TITLES[musicConfig.mood] ?? musicConfig.mood}
+                        </CardTitle>
+                        <CardDescription className="truncate max-w-[200px] mt-0.5">
+                          {musicConfig.track_path.split(/[\\/]/).pop()}
+                        </CardDescription>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => playAudioPreview(musicConfig.track_path)}
+                      className="h-8 px-2.5 text-xs text-violet-300"
+                    >
+                      {previewAudioPath === musicConfig.track_path ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs font-mono">
+                      <span className="text-slate-400 font-semibold">Bed Volume</span>
+                      <span className="text-violet-300 font-bold">{Math.round(musicConfig.volume * 100)}%</span>
+                    </div>
+                    <Slider
+                      value={[(musicConfig.volume / 0.3) * 100]}
+                      max={100}
+                      step={1}
+                      onValueChange={(val) =>
+                        setMusicConfig((m) =>
+                          m ? { ...m, volume: (val[0] / 100) * 0.3 } : m
+                        )
+                      }
+                    />
+                  </div>
+                </Card>
+              ) : (
+                <Card className="p-8 text-center text-slate-500">
+                  <p className="text-xs">No background music score selected</p>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Tab 3: AI Script Tags */}
+            <TabsContent value="script" className="flex-1 overflow-y-auto space-y-2 m-0 max-h-[300px] pr-1">
+              {timeline?.analyzed_segments.map((seg) => (
+                <div
+                  key={seg.id}
+                  onClick={() => seekTo(seg.start_sec)}
+                  className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all flex items-center justify-between gap-3 cursor-pointer text-xs"
                 >
-                  {previewAudioPath === musicConfig.track_path ? "⏸" : "▶"}
-                </button>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] text-slate-500 font-mono">MUSIC VOL</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={30}
-                  value={Math.round(musicConfig.volume * 100)}
-                  onChange={(e) =>
-                    setMusicConfig((m) =>
-                      m ? { ...m, volume: parseInt(e.target.value) / 100 } : m
-                    )
-                  }
-                  className="slider flex-1"
-                  style={{ "--pct": `${Math.round((musicConfig.volume / 0.3) * 100)}%` } as React.CSSProperties}
-                />
-                <span className="text-xs font-mono text-violet-300 font-bold w-8 text-right">
-                  {Math.round(musicConfig.volume * 100)}%
-                </span>
-              </div>
-            </div>
-          )}
+                  <span className="font-mono text-slate-400">{formatTs(seg.start_sec)}</span>
+                  <span className="text-slate-200 truncate flex-1 font-medium">{seg.text}</span>
+                  <Badge variant="default" className="text-[10px] uppercase">
+                    {seg.tag}
+                  </Badge>
+                </div>
+              ))}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
-      {/* ── Bottom DAW Multi-Track Studio Timeline ── */}
+      {/* ── Bottom DAW Studio Multi-Track Viewport ── */}
       <div className="px-6 pb-6">
-        <div className="daw-viewport" ref={timelineViewportRef}>
-          {/* DAW Time Ruler */}
+        <div className="daw-viewport">
+          {/* Time Ruler */}
           <div
             className="daw-ruler flex items-center cursor-pointer"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
-              const clickX = e.clientX - rect.left - 140; // account for track header
-              const width = (rect.width - 140);
+              const clickX = e.clientX - rect.left - 140;
+              const width = rect.width - 140;
               if (width > 0 && clickX >= 0) {
                 seekTo((clickX / width) * dur);
               }
             }}
           >
-            <div className="w-[140px] min-w-[140px] px-3 text-[10px] font-mono text-slate-500 uppercase font-bold border-r border-white/5">
-              Timeline DAW
+            <div className="w-[140px] min-w-[140px] px-3 text-[10px] font-mono text-slate-400 uppercase font-bold border-r border-white/8 flex items-center gap-1">
+              <Clock className="w-3 h-3 text-indigo-400" /> Timeline DAW
             </div>
             <div className="flex-1 relative h-full">
-              {/* Playhead Needle Handle */}
+              {/* Playhead Needle */}
               <div
                 className="daw-playhead-line"
                 style={{ left: `${(currentTime / Math.max(1, dur)) * 100}%` }}
@@ -672,11 +737,11 @@ export default function AnalyzePage() {
             </div>
           </div>
 
-          {/* Track 1: Subtitle / Speech Segments */}
+          {/* Track 1: Subtitles / Speech */}
           <div className="daw-track-row">
             <div className="daw-track-header">
-              <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
-                <span>🎙️</span> Narration
+              <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
+                <Mic className="w-3 h-3 text-violet-400" /> Narration
               </span>
               <span className="text-[9px] text-slate-500">
                 {timeline?.analyzed_segments.length ?? 0} segments
@@ -686,8 +751,7 @@ export default function AnalyzePage() {
               className="daw-track-lane"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                seekTo((clickX / rect.width) * dur);
+                seekTo(((e.clientX - rect.left) / rect.width) * dur);
               }}
             >
               {timeline?.analyzed_segments.map((seg) => {
@@ -700,7 +764,7 @@ export default function AnalyzePage() {
                       ev.stopPropagation();
                       seekTo(seg.start_sec);
                     }}
-                    className="absolute top-1.5 bottom-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 px-2 flex items-center text-[10px] text-slate-300 truncate cursor-pointer transition-colors"
+                    className="absolute top-1.5 bottom-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 px-2 flex items-center text-[10px] text-slate-300 truncate cursor-pointer transition-colors"
                     style={{ left: `${left}%`, width: `${width}%` }}
                     title={`"${seg.text}" (${formatTs(seg.start_sec)})`}
                   >
@@ -711,20 +775,19 @@ export default function AnalyzePage() {
             </div>
           </div>
 
-          {/* Track 2: Sound Effects (SFX) Track */}
+          {/* Track 2: Sound Effects */}
           <div className="daw-track-row" style={{ minHeight: 64 }}>
             <div className="daw-track-header">
               <span className="text-[11px] font-bold text-indigo-300 flex items-center gap-1.5">
-                <span>⚡</span> Sound Effects
+                <Sparkles className="w-3 h-3 text-indigo-400" /> Sound FX
               </span>
-              <span className="text-[9px] text-slate-500">{events.length} clips placed</span>
+              <span className="text-[9px] text-slate-500">{events.length} clips</span>
             </div>
             <div
               className="daw-track-lane"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                seekTo((clickX / rect.width) * dur);
+                seekTo(((e.clientX - rect.left) / rect.width) * dur);
               }}
             >
               {events.map((ev) => {
@@ -758,11 +821,11 @@ export default function AnalyzePage() {
             </div>
           </div>
 
-          {/* Track 3: Ambient Music Bed */}
+          {/* Track 3: Ambient Bed */}
           <div className="daw-track-row">
             <div className="daw-track-header">
               <span className="text-[11px] font-bold text-violet-300 flex items-center gap-1.5">
-                <span>🎵</span> Ambient Score
+                <Music className="w-3 h-3 text-violet-400" /> Ambient Score
               </span>
               <span className="text-[9px] text-slate-500">
                 {musicConfig ? musicConfig.mood : "Disabled"}
@@ -772,19 +835,16 @@ export default function AnalyzePage() {
               className="daw-track-lane"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                seekTo((clickX / rect.width) * dur);
+                seekTo(((e.clientX - rect.left) / rect.width) * dur);
               }}
             >
               {musicConfig && musicEnabled && (
-                <div
-                  className="absolute inset-y-1.5 inset-x-0 rounded bg-gradient-to-r from-violet-500/20 via-indigo-500/20 to-violet-500/20 border border-violet-500/30 flex items-center px-4 justify-between"
-                >
+                <div className="absolute inset-y-1.5 inset-x-0 rounded bg-gradient-to-r from-violet-500/20 via-indigo-500/20 to-violet-500/20 border border-violet-500/30 flex items-center px-4 justify-between">
                   <span className="text-[10px] text-violet-300 font-mono">
                     {musicConfig.track_path.split(/[\\/]/).pop()}
                   </span>
                   <span className="text-[9px] font-mono text-violet-400">
-                    Looping Continuous
+                    Continuous Bed
                   </span>
                 </div>
               )}
@@ -797,10 +857,9 @@ export default function AnalyzePage() {
       {showDrawer && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
           <div className="sound-drawer">
-            {/* Drawer Header */}
             <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#0f1220]">
               <div className="flex items-center gap-2">
-                <span className="text-xl">📁</span>
+                <FolderPlus className="w-5 h-5 text-indigo-400" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-100">Sound Library Catalog</h3>
                   <p className="text-[10px] text-slate-400">103 studio sounds ready to drop</p>
@@ -810,18 +869,16 @@ export default function AnalyzePage() {
                 onClick={() => setShowDrawer(false)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Search & Category Filter */}
             <div className="p-4 space-y-3 border-b border-white/5 bg-[#090b14]">
-              <input
-                type="text"
+              <Input
                 placeholder="Search sound effects..."
                 value={drawerSearch}
                 onChange={(e) => setDrawerSearch(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="text-xs h-9"
               />
 
               <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
@@ -829,10 +886,10 @@ export default function AnalyzePage() {
                   <button
                     key={cat}
                     onClick={() => setDrawerCategory(cat)}
-                    className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-wider transition-colors ${
+                    className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-wider transition-all cursor-pointer ${
                       drawerCategory === cat
-                        ? "bg-indigo-500 text-white"
-                        : "bg-white/5 text-slate-400 hover:text-white"
+                        ? "bg-indigo-600 text-white"
+                        : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     {cat}
@@ -841,7 +898,6 @@ export default function AnalyzePage() {
               </div>
             </div>
 
-            {/* Sound Items List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {filteredLibrary.map((item, idx) => (
                 <div key={idx} className="sound-card">
@@ -850,7 +906,7 @@ export default function AnalyzePage() {
                       onClick={() => playAudioPreview(`assets/sfx/${item.folder}/${item.filename}`)}
                       className="w-7 h-7 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-300 hover:text-white flex items-center justify-center text-xs flex-shrink-0 transition-colors"
                     >
-                      {previewAudioPath === `assets/sfx/${item.folder}/${item.filename}` ? "⏸" : "▶"}
+                      {previewAudioPath === `assets/sfx/${item.folder}/${item.filename}` ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 fill-current" />}
                     </button>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-slate-200 truncate max-w-[180px]">
@@ -862,12 +918,14 @@ export default function AnalyzePage() {
                     </div>
                   </div>
 
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => insertSoundEffect(item)}
-                    className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-indigo-600 text-[10px] font-bold text-slate-200 hover:text-white transition-colors"
+                    className="h-7 px-2.5 text-[10px] font-bold"
                   >
-                    + Insert
-                  </button>
+                    <Plus className="w-3 h-3 mr-1" /> Insert
+                  </Button>
                 </div>
               ))}
             </div>
@@ -875,9 +933,10 @@ export default function AnalyzePage() {
         </div>
       )}
 
-      {/* ── Toast Notification Banner ── */}
+      {/* ── Toast Notifications ── */}
       {toastMessage && (
         <div className="toast-banner">
+          <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
