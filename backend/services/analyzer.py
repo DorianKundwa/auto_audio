@@ -136,7 +136,6 @@ async def _classify_with_gemini(
         import google.generativeai as genai
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
 
         all_tags = [t.value for t in ContentTag]
         seg_lines = "\n".join(f'{s.id}: "{s.text}"' for s in segments)
@@ -161,11 +160,30 @@ Segments to classify:
 Reply ONLY with a JSON object mapping segment ID (string) to tag (string).
 Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
 
-        # Run synchronous genai call in thread pool
+        model_candidates = [
+            os.getenv("GEMINI_MODEL", "").strip(),
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-latest",
+            "gemini-2.0-flash-exp",
+            "gemini-1.5-pro",
+        ]
+        model_candidates = [m for m in model_candidates if m]
+
         loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(
-            None, lambda: model.generate_content(prompt)
-        )
+        response = None
+        for m_name in model_candidates:
+            try:
+                model = genai.GenerativeModel(m_name)
+                response = await loop.run_in_executor(
+                    None, lambda: model.generate_content(prompt)
+                )
+                if response and hasattr(response, "text") and response.text:
+                    break
+            except Exception as m_err:
+                continue
+
+        if not response or not hasattr(response, "text") or not response.text:
+            return {}
 
         raw_text = response.text.strip()
         json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)

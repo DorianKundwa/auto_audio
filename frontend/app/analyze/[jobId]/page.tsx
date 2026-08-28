@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { apiUrl } from "../../lib/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -207,13 +207,10 @@ function SFXRow({
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export default function AnalyzePage({
-  params,
-}: {
-  params: { jobId: string };
-}) {
+export default function AnalyzePage() {
   const router = useRouter();
-  const { jobId } = params;
+  const routeParams = useParams();
+  const jobId = typeof routeParams?.jobId === "string" ? routeParams.jobId : "";
 
   const [timeline, setTimeline] = useState<TimelineResult | null>(null);
   const [events, setEvents] = useState<SFXEvent[]>([]);
@@ -246,6 +243,7 @@ export default function AnalyzePage({
 
   // Load timeline from API
   useEffect(() => {
+    if (!jobId) return;
     fetch(apiUrl(`/api/analyze/${jobId}`))
       .then((r) => {
         if (!r.ok) throw new Error("Timeline not found");
