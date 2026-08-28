@@ -18,7 +18,8 @@ from typing import List, Optional, Dict, Any
 from models.schemas import AnalyzedSegment, SFXEvent, ContentTag, AnalyzeSettings
 
 # Root path to the assets directory (two levels up from services/)
-_ASSETS_ROOT = Path(__file__).parent.parent.parent / "assets" / "sfx"
+_PROJECT_ROOT = Path(__file__).parent.parent.parent
+_ASSETS_ROOT = _PROJECT_ROOT / "assets" / "sfx"
 _META_PATH = _ASSETS_ROOT / "metadata.json"
 
 # ---------------------------------------------------------------------------
@@ -109,42 +110,40 @@ def _load_metadata() -> List[Dict[str, Any]]:
     """Load SFX metadata catalog. Returns empty list if not yet generated."""
     if not _META_PATH.exists():
         return []
-    with open(_META_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(_META_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
 
 
 def _pick_sfx_file(sfx_type: str, intensity: float, metadata: List[Dict]) -> Optional[str]:
     """
     Pick the best SFX file for the given type and target intensity.
-    Prefers files whose intensity is closest to the target.
-    Falls back to any file of the right type or direct folder scanning.
+    Returns relative path (e.g. assets/sfx/impacts/impact_01.wav).
     """
     default_folder = SFX_FOLDERS.get(sfx_type, sfx_type + "s" if not sfx_type.endswith("s") else sfx_type)
     candidates = [m for m in metadata if m.get("type") == sfx_type]
 
-    if not candidates:
-        # Try filesystem scan as fallback
-        folder = _ASSETS_ROOT / default_folder
-        if not folder.exists():
-            folder = _ASSETS_ROOT / sfx_type
-        if folder.exists():
+    if candidates:
+        # Sort by intensity proximity
+        candidates.sort(key=lambda m: abs(m.get("intensity", 0.5) - intensity))
+        for chosen in candidates:
+            folder_name = chosen.get("folder", default_folder)
+            filename = chosen.get("filename", "")
+            path = _ASSETS_ROOT / folder_name / filename
+            if path.is_file():
+                return f"assets/sfx/{folder_name}/{filename}"
+
+    # Fallback to direct directory scan
+    for f_name in [default_folder, sfx_type]:
+        folder = _ASSETS_ROOT / f_name
+        if folder.is_dir():
             files = list(folder.glob("*.wav")) + list(folder.glob("*.mp3"))
-            return str(files[0]) if files else None
-        return None
+            if files:
+                return f"assets/sfx/{f_name}/{files[0].name}"
 
-    # Sort by intensity proximity
-    candidates.sort(key=lambda m: abs(m.get("intensity", 0.5) - intensity))
-    chosen = candidates[0]
-    folder_name = chosen.get("folder", default_folder)
-    path = _ASSETS_ROOT / folder_name / chosen["filename"]
-
-    # If file not found in subfolder, check direct sfx_type subfolder
-    if not path.exists():
-        fallback_path = _ASSETS_ROOT / sfx_type / chosen["filename"]
-        if fallback_path.exists():
-            return str(fallback_path)
-
-    return str(path) if path.exists() else None
+    return None
 
 
 def build_sfx_timeline(
@@ -166,7 +165,7 @@ def build_sfx_timeline(
     metadata = _load_metadata()
     events: List[SFXEvent] = []
     last_sfx_time: float = -999.0
-    MIN_GAP = 3.0  # minimum seconds between SFX events
+    MIN_GAP = 2.5  # minimum seconds between SFX events
 
     for seg in segments:
         if seg.tag == ContentTag.NONE:
@@ -178,7 +177,7 @@ def build_sfx_timeline(
 
         # Compute timestamp
         ts = seg.start_sec + sfx_cfg["offset_sec"]
-        ts = max(0.0, min(ts, video_duration - 0.5))
+        ts = max(0.0, min(ts, max(0.0, video_duration - 0.5)))
 
         # De-duplicate: skip if too close to previous event
         if ts - last_sfx_time < MIN_GAP:
@@ -191,7 +190,7 @@ def build_sfx_timeline(
             continue
 
         # Scale volume: base_volume * sfx_intensity (clamped)
-        volume = min(1.0, sfx_cfg["base_volume"] * (0.5 + settings.sfx_intensity))
+        volume = min(1.0, sfx_cfg["base_volume"] * (0.5 + float(settings.sfx_intensity)))
 
         events.append(
             SFXEvent(

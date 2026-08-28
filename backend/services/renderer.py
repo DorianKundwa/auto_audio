@@ -2,8 +2,8 @@
 FFmpeg Renderer — assembles the final video with background music and SFX.
 
 Filter graph strategy:
-  [0:a]  original video audio (full volume)
-  [1:a]  background music (looped, low volume)
+  [0:a]  original video audio (or generated silence if video has no audio)
+  [1:a]  background music (looped, volume controlled)
   [2:a]  SFX event 0 (delayed to timestamp)
   [3:a]  SFX event 1 ...
   ...
@@ -21,6 +21,50 @@ from pathlib import Path
 from typing import List, Optional
 
 from models.schemas import SFXEvent, MusicConfig
+
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+
+def _resolve_file(file_path: Optional[str]) -> Optional[Path]:
+    """Resolve file path against PROJECT_ROOT and verify it exists as a file."""
+    if not file_path or not str(file_path).strip():
+        return None
+    raw_str = str(file_path).strip().replace("\\", "/")
+    p = Path(raw_str)
+    if not p.is_absolute():
+        p = (PROJECT_ROOT / p).resolve()
+    if p.is_file():
+        return p
+    # Fallback to checking relative to PROJECT_ROOT / assets
+    alt = (PROJECT_ROOT / "assets" / raw_str).resolve()
+    if alt.is_file():
+        return alt
+    return None
+
+
+def _has_audio_stream(video_path: str) -> bool:
+    """Check if the source video contains an audio stream."""
+    try:
+        res = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "a",
+                "-show_entries",
+                "stream=codec_type",
+                "-of",
+                "csv=p=0",
+                video_path,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return "audio" in res.stdout.lower()
+    except Exception:
+        return True
 
 
 async def render_video(
@@ -74,20 +118,25 @@ def _build_command(
     Construct the FFmpeg command with a dynamic filter_complex graph.
     """
     # ---- Inputs -------------------------------------------------------
-    inputs: List[str] = ["-i", video_path]
+    inputs: List[str] = ["-i", str(Path(video_path).resolve())]
     input_idx = 1  # 0 = video
 
     music_input_idx: Optional[int] = None
-    if music_config and Path(music_config.track_path).exists():
-        inputs += ["-i", music_config.track_path]
-        music_input_idx = input_idx
-        input_idx += 1
+    if music_config and music_config.track_path:
+        resolved_music = _resolve_file(music_config.track_path)
+        if resolved_music:
+            inputs += ["-i", str(resolved_music)]
+            music_input_idx = input_idx
+            input_idx += 1
+        else:
+            print(f"[renderer] Music track missing, skipping: {music_config.track_path}")
 
     sfx_input_indices: List[int] = []
     valid_events: List[SFXEvent] = []
     for event in sfx_events:
-        if Path(event.sfx_path).exists():
-            inputs += ["-i", event.sfx_path]
+        resolved_sfx = _resolve_file(event.sfx_path)
+        if resolved_sfx:
+            inputs += ["-i", str(resolved_sfx)]
             sfx_input_indices.append(input_idx)
             valid_events.append(event)
             input_idx += 1
@@ -95,12 +144,19 @@ def _build_command(
             print(f"[renderer] SFX file missing, skipping: {event.sfx_path}")
 
     # ---- Filter complex -----------------------------------------------
+    has_video_audio = _has_audio_stream(video_path)
     filter_parts: List[str] = []
-    mix_labels: List[str] = ["[0:a]"]  # original audio
+    mix_labels: List[str] = []
 
-    if music_input_idx is not None:
-        vol = music_config.volume
-        # Loop music up to 3 hours (will be trimmed by -t)
+    if has_video_audio:
+        mix_labels.append("[0:a]")
+    else:
+        # Generate silence if video has no native audio
+        filter_parts.append("anullsrc=channel_layout=stereo:sample_rate=44100[silent_base]")
+        mix_labels.append("[silent_base]")
+
+    if music_input_idx is not None and music_config:
+        vol = max(0.01, min(1.0, float(music_config.volume)))
         filter_parts.append(
             f"[{music_input_idx}:a]volume={vol},"
             f"aloop=loop=200:size=44100000[music_loop]"
@@ -108,18 +164,20 @@ def _build_command(
         mix_labels.append("[music_loop]")
 
     for i, (idx, event) in enumerate(zip(sfx_input_indices, valid_events)):
-        delay_ms = int(event.timestamp * 1000)
+        delay_ms = max(0, int(event.timestamp * 1000))
+        vol = max(0.01, min(2.0, float(event.volume)))
         label = f"[sfx{i}]"
         filter_parts.append(
-            f"[{idx}:a]volume={event.volume},"
+            f"[{idx}:a]volume={vol},"
             f"adelay={delay_ms}|{delay_ms}{label}"
         )
         mix_labels.append(label)
 
     n_inputs = len(mix_labels)
-    if n_inputs == 1:
-        # No additions — just copy audio
+    if n_inputs == 1 and has_video_audio:
         filter_complex = "[0:a]acopy[out]"
+    elif n_inputs == 1 and not has_video_audio:
+        filter_complex = "anullsrc=channel_layout=stereo:sample_rate=44100[out]"
     else:
         mix_inputs = "".join(mix_labels)
         filter_parts.append(
@@ -137,7 +195,7 @@ def _build_command(
         "-b:a", "192k",
         "-shortest",
         "-movflags", "+faststart",
-        output_path,
+        str(Path(output_path).resolve()),
     ]
 
     return cmd

@@ -12,7 +12,8 @@ from typing import List, Dict, Any, Optional
 
 from models.schemas import AnalyzedSegment, MusicConfig, ContentTag, AnalyzeSettings
 
-_MUSIC_ROOT = Path(__file__).parent.parent.parent / "assets" / "music"
+_PROJECT_ROOT = Path(__file__).parent.parent.parent
+_MUSIC_ROOT = _PROJECT_ROOT / "assets" / "music"
 _META_PATH = _MUSIC_ROOT / "metadata.json"
 
 # ---------------------------------------------------------------------------
@@ -35,8 +36,11 @@ TAG_MOOD: Dict[ContentTag, str] = {
 def _load_metadata() -> List[Dict[str, Any]]:
     if not _META_PATH.exists():
         return []
-    with open(_META_PATH, "r") as f:
-        return json.load(f)
+    try:
+        with open(_META_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
 
 
 def _dominant_mood(segments: List[AnalyzedSegment]) -> str:
@@ -61,37 +65,43 @@ def select_music(
     mood = _dominant_mood(segments)
     metadata = _load_metadata()
 
-    # Filter by mood
-    candidates = [m for m in metadata if mood in m.get("moods", [])]
+    # Filter by mood or folder
+    candidates = [
+        m for m in metadata
+        if m.get("mood") == mood or mood in m.get("moods", []) or m.get("folder") == mood
+    ]
 
     # Fallback: any track
     if not candidates:
         candidates = metadata
 
-    # Fallback: scan filesystem
-    if not candidates:
-        for folder in _MUSIC_ROOT.iterdir():
-            if folder.is_dir():
-                files = list(folder.glob("*.wav")) + list(folder.glob("*.mp3"))
-                if files:
-                    return MusicConfig(
-                        track_path=str(files[0]),
-                        volume=round(0.08 + settings.music_intensity * 0.12, 3),
-                        mood=folder.name,
-                    )
-        return None
+    if candidates:
+        random.shuffle(candidates)
+        for cand in candidates:
+            folder = cand.get("folder", "")
+            filename = cand.get("filename", "")
+            track_path = _MUSIC_ROOT / folder / filename
+            if track_path.is_file():
+                # Store relative to project root
+                rel_path = f"assets/music/{folder}/{filename}"
+                volume = round(0.08 + float(settings.music_intensity) * 0.12, 3)
+                return MusicConfig(
+                    track_path=rel_path,
+                    volume=volume,
+                    mood=mood,
+                )
 
-    track_meta = random.choice(candidates)
-    track_path = _MUSIC_ROOT / track_meta.get("folder", "") / track_meta["filename"]
+    # Absolute fallback: scan filesystem directly
+    for folder in _MUSIC_ROOT.iterdir():
+        if folder.is_dir():
+            files = list(folder.glob("*.wav")) + list(folder.glob("*.mp3"))
+            if files:
+                rel_path = f"assets/music/{folder.name}/{files[0].name}"
+                volume = round(0.08 + float(settings.music_intensity) * 0.12, 3)
+                return MusicConfig(
+                    track_path=rel_path,
+                    volume=volume,
+                    mood=folder.name,
+                )
 
-    if not track_path.exists():
-        return None
-
-    # Volume: 8%–20% under the voice, scaled by music_intensity slider
-    volume = round(0.08 + settings.music_intensity * 0.12, 3)
-
-    return MusicConfig(
-        track_path=str(track_path),
-        volume=volume,
-        mood=mood,
-    )
+    return None
