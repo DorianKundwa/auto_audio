@@ -19,12 +19,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="bg-gradient-animated min-h-screen">{children}</body>
+      <body className="bg-gradient-animated min-h-screen" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }
