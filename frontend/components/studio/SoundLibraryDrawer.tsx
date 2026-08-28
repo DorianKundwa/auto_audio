@@ -14,6 +14,7 @@ import {
   X,
   Sparkles,
   Layers,
+  Filter,
 } from "lucide-react";
 
 export interface SFXLibraryItem {
@@ -75,7 +76,7 @@ export function SoundLibraryDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs select-none">
-      <div className="w-[440px] max-w-[92vw] h-full bg-[#1E1E1E] border-l border-[#3E3E42] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+      <div className="w-[450px] max-w-[92vw] h-full bg-[#1E1E1E] border-l border-[#3E3E42] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         {/* Drawer Header */}
         <div className="p-4 border-b border-[#3E3E42] flex items-center justify-between bg-[#252528]">
           <div className="flex items-center gap-2.5">
@@ -133,6 +134,7 @@ export function SoundLibraryDrawer({
           {filtered.map((item, idx) => {
             const path = `assets/sfx/${item.folder}/${item.filename}`;
             const isPreviewing = previewPlayingPath === path;
+            const intensityDots = Math.round(item.intensity * 5);
 
             return (
               <div
@@ -168,18 +170,34 @@ export function SoundLibraryDrawer({
                       <span className="text-[9px] font-mono text-[#858585]">
                         {item.duration}s
                       </span>
+                      {/* Intensity meter */}
+                      <span className="text-[9px] font-mono text-amber-400">
+                        {"●".repeat(intensityDots)}{"○".repeat(5 - intensityDots)}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onInsertSound(item)}
-                  className="h-7 px-2.5 text-[10px] font-bold bg-[#1E1E1E] border-[#3E3E42] hover:bg-indigo-600 hover:text-white hover:border-indigo-500 text-[#CCCCCC] transition-all flex-shrink-0"
-                >
-                  <Plus className="w-3 h-3 mr-1" /> Insert
-                </Button>
+                <div className="flex items-center gap-2">
+                  <WaveformVisualizer
+                    seed={item.filename}
+                    bars={16}
+                    height={16}
+                    barWidth={1.5}
+                    gap={1}
+                    color="#4f46e5"
+                    className="opacity-40 hidden sm:block"
+                  />
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onInsertSound(item)}
+                    className="h-7 px-2.5 text-[10px] font-bold bg-[#1E1E1E] border-[#3E3E42] hover:bg-indigo-600 hover:text-white hover:border-indigo-500 text-[#CCCCCC] transition-all flex-shrink-0"
+                  >
+                    <Plus className="w-3 h-3 mr-1" /> Insert
+                  </Button>
+                </div>
               </div>
             );
           })}

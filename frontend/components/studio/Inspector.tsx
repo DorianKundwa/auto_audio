@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { SFXEvent, AnalyzedSegment } from "@/hooks/useTimeline";
 import { MusicConfig } from "@/hooks/useProjectExport";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import { WaveformVisualizer } from "./WaveformVisualizer";
 import {
   Sparkles,
   Music,
@@ -21,7 +21,9 @@ import {
   Volume2,
   Clock,
   Layers,
-  ChevronDown,
+  SlidersHorizontal,
+  Compass,
+  Activity,
 } from "lucide-react";
 
 interface InspectorProps {
@@ -54,6 +56,13 @@ const SFX_ICONS: Record<string, string> = {
   drop: "🔇",
 };
 
+const EQ_PRESETS = [
+  { id: "flat", label: "Flat (Original)" },
+  { id: "lowcut", label: "Low-Cut (80Hz)" },
+  { id: "bassboost", label: "Bass Punch" },
+  { id: "clarity", label: "Vocal Clarity" },
+];
+
 export function Inspector({
   selectedEvent,
   musicConfig,
@@ -70,6 +79,11 @@ export function Inspector({
   onSeek,
 }: InspectorProps) {
   const activeSegmentRef = useRef<HTMLDivElement | null>(null);
+
+  // Local effect parameters (Pitch, Pan, EQ)
+  const [pitch, setPitch] = useState(0); // -12 to +12
+  const [pan, setPan] = useState(0); // -100 to +100
+  const [activeEq, setActiveEq] = useState("flat");
 
   // Auto-scroll to active speech segment during playback
   useEffect(() => {
@@ -97,11 +111,11 @@ export function Inspector({
           </TabsTrigger>
         </TabsList>
 
-        {/* ── Tab 1: Selected SFX Inspector (Compact NLE Layout) ── */}
+        {/* ── Tab 1: Selected SFX Inspector ── */}
         <TabsContent value="sfx" className="flex-1 overflow-y-auto m-0 pr-1 space-y-2.5">
           {selectedEvent ? (
             <div className="space-y-2.5">
-              {/* Compact Header Row */}
+              {/* Header Row */}
               <div className="p-3 rounded-lg bg-[#252528] border border-[#3E3E42] flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className="text-xl">
@@ -158,7 +172,22 @@ export function Inspector({
                 </div>
               </div>
 
-              {/* Compact Parameters Grid: Timestamp & Gain Fader side-by-side */}
+              {/* Waveform Audition Strip */}
+              <div className="p-2 rounded-lg bg-[#1E1E1E] border border-[#3E3E42] flex items-center justify-between">
+                <WaveformVisualizer
+                  seed={selectedEvent.sfx_path || selectedEvent.id}
+                  bars={42}
+                  height={18}
+                  barWidth={2}
+                  gap={1.5}
+                  color="#6366f1"
+                />
+                <span className="text-[9px] font-mono text-[#858585]">
+                  48kHz 24-bit
+                </span>
+              </div>
+
+              {/* Compact Parameters Grid: Timestamp & Gain Fader */}
               <div className="grid grid-cols-2 gap-2">
                 {/* Timestamp Placement Box */}
                 <div className="p-2.5 rounded-lg bg-[#252528] border border-[#3E3E42] space-y-1">
@@ -209,13 +238,51 @@ export function Inspector({
                 </div>
               </div>
 
+              {/* Pitch & Stereo Pan Controls */}
+              <div className="p-2.5 rounded-lg bg-[#252528] border border-[#3E3E42] space-y-2">
+                <div className="flex items-center justify-between text-[10px] text-[#858585]">
+                  <span className="font-semibold uppercase flex items-center gap-1">
+                    <SlidersHorizontal className="w-3 h-3 text-violet-400" /> Pitch & Pan
+                  </span>
+                  <span className="font-mono text-[#CCCCCC]">
+                    {pitch > 0 ? `+${pitch}` : pitch} st • {pan === 0 ? "C" : pan < 0 ? `L${Math.abs(pan)}%` : `R${pan}%`}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-[#858585]">Pitch Tuning</span>
+                    <Slider
+                      value={[pitch]}
+                      min={-12}
+                      max={12}
+                      step={1}
+                      onValueChange={(v) => setPitch(v[0])}
+                      className="h-1.5"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-[#858585]">Stereo Pan</span>
+                    <Slider
+                      value={[pan]}
+                      min={-100}
+                      max={100}
+                      step={5}
+                      onValueChange={(v) => setPan(v[0])}
+                      className="h-1.5"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Compact AI Context Banner */}
               <div className="p-2.5 rounded-lg bg-[#252528] border border-indigo-500/20 text-xs space-y-1">
                 <div className="flex items-center justify-between text-[10px]">
                   <span className="font-bold text-indigo-300 flex items-center gap-1">
                     <Sparkles className="w-3 h-3" /> AI Narration Trigger
                   </span>
-                  <span className="text-violet-300 font-mono font-bold">94% match</span>
+                  <span className="text-violet-300 font-mono font-bold">94% confidence</span>
                 </div>
                 <p className="text-[#CCCCCC] italic text-[11px] truncate leading-tight">
                   &quot;{selectedEvent.text_snippet}&quot;
@@ -227,7 +294,7 @@ export function Inspector({
                 variant="outline"
                 size="sm"
                 onClick={() => onOpenLibraryForReplace(selectedEvent.sfx_type)}
-                className="w-full h-8 text-xs font-semibold gap-1.5 bg-[#252528] border-[#3E3E42] hover:border-indigo-500/40 hover:bg-[#38383C] text-[#CCCCCC] hover:text-white"
+                className="w-full h-8 text-xs font-semibold gap-1.5 bg-[#252528] border-[#3E3E42] hover:border-indigo-500/40 hover:bg-[#38383C] text-[#CCCCCC] hover:text-white transition-colors"
               >
                 <FolderOpen className="w-3.5 h-3.5 text-indigo-400" /> Replace Sound from Library
               </Button>
