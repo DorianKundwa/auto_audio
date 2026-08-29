@@ -159,7 +159,6 @@ Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
     import urllib.request
-    import time
 
     def _call_gemini_rest():
         req = urllib.request.Request(
@@ -173,7 +172,7 @@ Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
         with urllib.request.urlopen(req, timeout=30) as resp:
             return json.loads(resp.read().decode("utf-8"))
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     last_exc: Exception = RuntimeError("no attempts made")
     for attempt in range(3):  # up to 3 attempts (original + 2 retries)
         try:

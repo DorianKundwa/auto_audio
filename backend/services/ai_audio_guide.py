@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 
 ROOT_DIR = Path(__file__).parent.parent.parent
-SFX_CATALOG_PATH = ROOT_DIR / "assets" / "sfx" / "ai_catalog.json"
-MUSIC_CATALOG_PATH = ROOT_DIR / "assets" / "music" / "ai_catalog.json"
+SFX_CATALOG_PATH = ROOT_DIR / "assets" / "sfx" / "metadata.json"
+MUSIC_CATALOG_PATH = ROOT_DIR / "assets" / "music" / "metadata.json"
 
 
 def get_sfx_catalog() -> List[Dict[str, Any]]:

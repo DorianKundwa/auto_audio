@@ -46,6 +46,10 @@ async def export_video(
         if stored:
             music_config = stored.music_config
 
+    # Resolve video duration from stored timeline (avoids redundant ffprobe)
+    stored = get_timeline(job_id)
+    stored_duration = stored.video_duration if stored else None
+
     output_path = await render_video(
         job_id=job_id,
         video_path=video_path,
@@ -54,6 +58,7 @@ async def export_video(
         music_enabled=body.music_enabled,
         sfx_enabled=body.sfx_enabled,
         output_dir=str(OUTPUTS_DIR),
+        video_duration=stored_duration,
     )
 
     return FileResponse(

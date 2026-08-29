@@ -69,7 +69,7 @@ def _has_audio_stream(video_path: str) -> bool:
 
 
 def _get_file_duration(file_path: Path) -> float:
-    """Get audio duration in seconds."""
+    """Get audio/video duration in seconds."""
     try:
         res = subprocess.run(
             [
@@ -88,6 +88,25 @@ def _get_file_duration(file_path: Path) -> float:
         return 30.0
 
 
+def _get_sample_rate(file_path: Path) -> int:
+    """Detect the audio sample rate of a file via ffprobe."""
+    try:
+        res = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-select_streams", "a:0",
+                "-show_entries", "stream=sample_rate",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                str(file_path),
+            ],
+            capture_output=True, text=True, timeout=10,
+        )
+        rate = int(res.stdout.strip())
+        return rate if rate > 0 else 44100
+    except Exception:
+        return 44100
+
+
 async def render_video(
     job_id: str,
     video_path: str,
@@ -96,6 +115,7 @@ async def render_video(
     music_enabled: bool,
     sfx_enabled: bool,
     output_dir: str,
+    video_duration: Optional[float] = None,
 ) -> str:
     """
     Build FFmpeg command and run it asynchronously.
@@ -103,11 +123,16 @@ async def render_video(
     """
     output_path = str(Path(output_dir) / f"{job_id}_output.mp4")
 
+    # Resolve video duration once here; avoids a redundant ffprobe inside _build_command
+    if video_duration is None or video_duration <= 0:
+        video_duration = _get_file_duration(Path(video_path))
+
     cmd = _build_command(
         video_path=video_path,
         output_path=output_path,
         sfx_events=sfx_events if sfx_enabled else [],
         music_config=music_config if music_enabled else None,
+        video_duration=video_duration,
     )
 
     print(f"[renderer] Running FFmpeg:\n  {' '.join(cmd)}")
@@ -134,12 +159,13 @@ def _build_command(
     output_path: str,
     sfx_events: List[SFXEvent],
     music_config: Optional[MusicConfig],
+    video_duration: float = 0.0,
 ) -> List[str]:
     """
     Construct the FFmpeg command with a dynamic filter_complex graph.
     Music is added back-to-back across the timeline until the video ends, then trimmed.
     """
-    video_dur = _get_file_duration(Path(video_path))
+    video_dur = video_duration if video_duration > 0 else _get_file_duration(Path(video_path))
 
     # ---- Inputs -------------------------------------------------------
     inputs: List[str] = ["-i", str(Path(video_path).resolve())]
@@ -184,9 +210,11 @@ def _build_command(
 
     if music_input_idx is not None and music_config:
         vol = max(0.01, min(1.0, float(music_config.volume)))
-        # Calculate repetitions needed to cover video duration
+        # Detect real sample rate so aloop size is frame-accurate
+        resolved_music_path = _resolve_file(music_config.track_path)
+        music_sr = _get_sample_rate(resolved_music_path) if resolved_music_path else 44100
         repeats = max(1, math.ceil(video_dur / max(0.1, music_track_dur)) + 1)
-        samples = int(music_track_dur * 44100)
+        samples = int(music_track_dur * music_sr)
         filter_parts.append(
             f"[{music_input_idx}:a]volume={vol},"
             f"aloop=loop={repeats}:size={samples},"

@@ -91,7 +91,9 @@ def _score_music_candidates(
             continue
 
         score = 0.0
-        cand_mood = cand.get("mood", folder)
+        # Accept both 'mood' (string) and 'moods' (list) from metadata
+        raw_mood = cand.get("mood") or (cand.get("moods") or [None])[0] or folder
+        cand_mood = raw_mood if isinstance(raw_mood, str) else folder
 
         # 1. Base mood alignment
         if cand_mood == dominant_tag_mood:

@@ -145,7 +145,10 @@ function setVideoFile(file) {
 
   const videoElem = document.createElement("video");
   videoElem.preload = "metadata";
-  videoElem.src = URL.createObjectURL(file);
+  // Revoke any previous object URL before creating a new one
+  if (state._videoObjectUrl) URL.revokeObjectURL(state._videoObjectUrl);
+  state._videoObjectUrl = URL.createObjectURL(file);
+  videoElem.src = state._videoObjectUrl;
   videoElem.onloadedmetadata = () => {
     state.videoDuration = videoElem.duration || 60;
     document.getElementById("video-dur-badge").innerText = videoElem.duration.toFixed(1) + "s";
@@ -154,6 +157,11 @@ function setVideoFile(file) {
 
 function clearSelectedVideo(e) {
   if (e) e.stopPropagation();
+  // Release the blob URL to prevent memory leak
+  if (state._videoObjectUrl) {
+    URL.revokeObjectURL(state._videoObjectUrl);
+    state._videoObjectUrl = null;
+  }
   state.videoFile = null;
   document.getElementById("video-file-input").value = "";
   document.getElementById("video-drop-empty").classList.remove("hidden");
@@ -336,9 +344,11 @@ async function startAnalysisWorkflow() {
 
     const timelineData = await analyzeRes.json();
     updateAnalysisProgress(100, "Rendering studio timeline...");
+    // Clear simulation immediately — do not wait for the transition delay
+    clearInterval(analysisSimulationInterval);
+    analysisSimulationInterval = null;
 
     setTimeout(() => {
-      clearInterval(analysisSimulationInterval);
       loadTimelineIntoStudio(timelineData);
     }, 800);
   } catch (err) {
@@ -420,9 +430,10 @@ function loadTimelineIntoStudio(data) {
   state.musicConfig = data.music_config || null;
   state.videoDuration = data.video_duration || 60;
 
-  // Setup video source
+  // Setup video source — use actual filename returned from the upload
   const video = document.getElementById("studio-video");
-  video.src = `/uploads/${state.jobId}/video.mp4`;
+  const ext = state.videoFile ? state.videoFile.name.split(".").pop() : "mp4";
+  video.src = `/uploads/${state.jobId}/video.${ext}`;
 
   document.getElementById("project-header-title").innerText = `${state.videoFile?.name || "Job " + state.jobId} — AI Sound Design`;
 
@@ -565,7 +576,11 @@ function renderTimeline() {
         : "bg-primary-container/80 hover:bg-primary text-on-primary-container hover:text-on-primary border border-primary/40 z-10"
     }`;
     clip.style.left = `${left}px`;
-    clip.style.width = "110px";
+    // Width reflects the event's actual trimmed duration scaled to current zoom
+    const clipWidthPx = ev.duration
+      ? Math.max(40, ev.duration * pxPerSec)
+      : 110;  // fallback for manually-inserted events without duration
+    clip.style.width = `${clipWidthPx}px`;
     clip.innerHTML = `
       <span class="truncate mr-1 font-label-mono text-[10px]">${ev.label || ev.sfx_type.toUpperCase()}</span>
       <span class="text-[9px] font-timecode opacity-80">${(ev.volume * 100).toFixed(0)}%</span>
@@ -805,6 +820,7 @@ function insertSoundAtPlayhead(path, type, filename) {
     volume: 0.75,
     label: type.toUpperCase(),
     text_snippet: `Custom Placement: ${filename.slice(0, 20)}`,
+    duration: null,  // renderer will play full file when null
   };
 
   state.events.push(newEv);
@@ -910,7 +926,7 @@ function setupKeyboardShortcuts() {
     } else if (e.code === "ArrowLeft" || e.key.toLowerCase() === "j") {
       e.preventDefault();
       skipVideo(-5);
-    } else if (e.code === "ArrowRight" || e.key.toLowerCase() === "l") {
+    } else if ((e.code === "ArrowRight" || e.key.toLowerCase() === "l") && !e.shiftKey) {
       e.preventDefault();
       skipVideo(5);
     } else if (e.key.toLowerCase() === "m") {
@@ -935,8 +951,8 @@ function setupKeyboardShortcuts() {
 function formatTimecode(sec) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
-  const f = Math.floor((sec % 1) * 30);
-  return `00:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}:${String(f).padStart(2, "0")}`;
+  const ms = Math.floor((sec % 1) * 1000);
+  return `00:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
 }
 
 function formatTimecodeShort(sec) {

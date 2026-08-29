@@ -22,12 +22,47 @@ router = APIRouter()
 
 UPLOADS_DIR = Path(__file__).parent.parent.parent / "uploads"
 
-# In-memory job store  {job_id: TimelineResult}
-_job_store: dict = {}
+# ── Job store: disk-backed (survives restarts / --reload) ─────────────────────
+# Results are saved as uploads/{job_id}/timeline.json.
+# A small LRU memory cache (last 20 jobs) avoids redundant disk reads.
+_CACHE_MAX = 20
+_mem_cache: dict = {}          # job_id -> TimelineResult
+_cache_order: list = []        # insertion-ordered list of job_ids
 
 
-def get_timeline(job_id: str) -> Optional[TimelineResult]:
-    return _job_store.get(job_id)
+def _cache_put(job_id: str, result: "TimelineResult") -> None:
+    if job_id not in _mem_cache:
+        _cache_order.append(job_id)
+        if len(_cache_order) > _CACHE_MAX:
+            evicted = _cache_order.pop(0)
+            _mem_cache.pop(evicted, None)
+    _mem_cache[job_id] = result
+
+
+def _persist(job_id: str, result: "TimelineResult") -> None:
+    """Write timeline to disk so it survives server restarts."""
+    path = UPLOADS_DIR / job_id / "timeline.json"
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(result.model_dump_json())
+    except Exception as exc:
+        print(f"[analyze] Could not persist timeline for {job_id}: {exc}")
+
+
+def get_timeline(job_id: str) -> "Optional[TimelineResult]":
+    """Return the stored timeline — memory cache first, then disk fallback."""
+    if job_id in _mem_cache:
+        return _mem_cache[job_id]
+    path = UPLOADS_DIR / job_id / "timeline.json"
+    if path.exists():
+        try:
+            from models.schemas import TimelineResult as _TR
+            result = _TR.model_validate_json(path.read_text(encoding="utf-8"))
+            _cache_put(job_id, result)
+            return result
+        except Exception as exc:
+            print(f"[analyze] Could not load timeline for {job_id}: {exc}")
+    return None
 
 
 def _get_video_duration(video_path: str) -> float:
@@ -75,8 +110,7 @@ async def analyze_video(
     else:
         # Auto-transcribe with faster-whisper
         import asyncio
-        loop = asyncio.get_event_loop()
-        segments = await loop.run_in_executor(None, transcribe, video_path)
+        segments = await asyncio.to_thread(transcribe, video_path)
 
     if not segments:
         raise HTTPException(422, "Could not extract any text segments from the video.")
@@ -108,14 +142,15 @@ async def analyze_video(
         analyzed_segments=analyzed,
     )
 
-    _job_store[job_id] = result
+    _cache_put(job_id, result)
+    _persist(job_id, result)
     return result
 
 
 @router.get("/analyze/{job_id}", response_model=TimelineResult)
 async def get_timeline_result(job_id: str):
-    """Retrieve a previously computed timeline."""
-    result = _job_store.get(job_id)
+    """Retrieve a previously computed timeline (memory or disk)."""
+    result = get_timeline(job_id)
     if not result:
         raise HTTPException(404, f"No analysis found for job '{job_id}'.")
     return result

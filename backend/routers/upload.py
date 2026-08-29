@@ -44,12 +44,23 @@ async def upload_files(
     job_dir = UPLOADS_DIR / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save video
+    # Save video (enforcing size limit)
     video_ext = Path(video.filename).suffix.lower()
     video_filename = f"video{video_ext}"
     video_path = job_dir / video_filename
+    max_bytes = MAX_VIDEO_MB * 1024 * 1024
+    total_written = 0
     async with aiofiles.open(video_path, "wb") as f:
         while chunk := await video.read(1024 * 1024):  # 1 MB chunks
+            total_written += len(chunk)
+            if total_written > max_bytes:
+                await f.close()
+                video_path.unlink(missing_ok=True)
+                job_dir.rmdir()
+                raise HTTPException(
+                    413,
+                    f"Video file exceeds maximum allowed size of {MAX_VIDEO_MB} MB.",
+                )
             await f.write(chunk)
 
     # Save SRT (optional)
