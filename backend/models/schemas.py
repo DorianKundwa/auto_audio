@@ -41,6 +41,7 @@ class SFXEvent(BaseModel):
     volume: float             # 0.0 – 1.0
     label: str                # display label, e.g. "IMPACT"
     text_snippet: str         # the narration line that triggered this
+    duration: Optional[float] = None  # max seconds to play; None = play full file
 
 
 class MusicClip(BaseModel):

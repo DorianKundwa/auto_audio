@@ -159,6 +159,7 @@ Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
     import urllib.request
+    import time
 
     def _call_gemini_rest():
         req = urllib.request.Request(
@@ -169,11 +170,23 @@ Example: {{"1": "NONE", "2": "REVEAL", "3": "HOOK"}}"""
                 "X-goog-api-key": api_key,
             },
         )
-        with urllib.request.urlopen(req, timeout=12) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:
             return json.loads(resp.read().decode("utf-8"))
 
     loop = asyncio.get_event_loop()
-    data = await loop.run_in_executor(None, _call_gemini_rest)
+    last_exc: Exception = RuntimeError("no attempts made")
+    for attempt in range(3):  # up to 3 attempts (original + 2 retries)
+        try:
+            data = await loop.run_in_executor(None, _call_gemini_rest)
+            break
+        except Exception as exc:
+            last_exc = exc
+            if attempt < 2:
+                wait = 2 ** attempt  # 1s, 2s
+                print(f"[analyzer] Gemini retry {attempt + 1}/2 after {wait}s ({exc})")
+                await asyncio.sleep(wait)
+    else:
+        raise last_exc
     raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
     json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
     if not json_match:
@@ -209,8 +222,13 @@ async def _classify_with_gemini(
         try:
             chunk_results = await _classify_chunk(chunk, api_key, model_name)
             results.update(chunk_results)
+            print(
+                f"[analyzer] Gemini classified segments "
+                f"{chunk[0].id}–{chunk[-1].id} "
+                f"({len(chunk_results)}/{len(chunk)} tagged)"
+            )
         except Exception as exc:
-            print(f"[analyzer] Gemini chunk classification note: {exc}")
+            print(f"[analyzer] Gemini chunk {i}–{i+CHUNK_SIZE-1} failed after retries: {exc}")
 
     return results
 

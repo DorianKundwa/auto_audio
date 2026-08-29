@@ -118,6 +118,43 @@ def _load_metadata() -> List[Dict[str, Any]]:
         return []
 
 
+def _get_sfx_file_duration(sfx_path: str, metadata: List[Dict[str, Any]]) -> float:
+    """
+    Return the known duration of an SFX file in seconds.
+    First tries metadata catalog (cheap). Falls back to ffprobe (slow, rare).
+    """
+    import subprocess as _sp
+    # Normalize to folder/filename for metadata lookup
+    rel = sfx_path.replace("\\", "/")
+    parts = rel.split("/")
+    filename = parts[-1] if parts else ""
+    folder = parts[-2] if len(parts) >= 2 else ""
+
+    for entry in metadata:
+        if entry.get("filename") == filename and entry.get("folder", "") in (folder, ""):
+            dur = entry.get("duration", 0.0)
+            if dur and dur > 0:
+                return float(dur)
+
+    # Fallback: ffprobe
+    full_path = _PROJECT_ROOT / sfx_path
+    if not full_path.is_file():
+        full_path = _ASSETS_ROOT / folder / filename
+    try:
+        res = _sp.run(
+            [
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                str(full_path),
+            ],
+            capture_output=True, text=True, timeout=8,
+        )
+        return float(res.stdout.strip())
+    except Exception:
+        return 5.0  # safe fallback
+
+
 def _calculate_semantic_score(text: str, candidate: Dict[str, Any]) -> float:
     """Score how well a sound effect matches keywords in the subtitle text."""
     if not text:
@@ -308,4 +345,18 @@ def build_sfx_timeline(
 
     # Sort chronologically
     events.sort(key=lambda e: e.timestamp)
+
+    # ── Second pass: compute per-event playback duration ──────────────────────
+    # Each SFX should stop when the next SFX starts (or the video ends),
+    # and must never exceed the physical file's own duration.
+    MIN_DURATION = 0.3  # never trim below 0.3 s
+    for i, ev in enumerate(events):
+        file_dur = _get_sfx_file_duration(ev.sfx_path, metadata)
+        if i + 1 < len(events):
+            gap = events[i + 1].timestamp - ev.timestamp
+        else:
+            gap = video_duration - ev.timestamp
+        allowed = max(MIN_DURATION, min(file_dur, gap))
+        ev.duration = round(allowed, 3)
+
     return events

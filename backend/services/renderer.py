@@ -199,10 +199,16 @@ def _build_command(
         delay_ms = max(0, int(event.timestamp * 1000))
         vol = max(0.01, min(2.0, float(event.volume)))
         label = f"[sfx{i}]"
-        filter_parts.append(
-            f"[{idx}:a]volume={vol},"
-            f"adelay={delay_ms}|{delay_ms}{label}"
-        )
+
+        # Build filter chain for this SFX input
+        sfx_filters = [f"[{idx}:a]volume={vol}"]
+        if event.duration and event.duration > 0:
+            # Trim the SFX to its allowed window so it never bleeds into the next event
+            sfx_filters.append(f"atrim=0:{round(event.duration, 3)}")
+            sfx_filters.append("asetpts=PTS-STARTPTS")
+        sfx_filters.append(f"adelay={delay_ms}|{delay_ms}")
+
+        filter_parts.append(",".join(sfx_filters) + label)
         mix_labels.append(label)
 
     n_inputs = len(mix_labels)
