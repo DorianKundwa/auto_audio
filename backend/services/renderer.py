@@ -107,6 +107,27 @@ def _get_sample_rate(file_path: Path) -> int:
         return 44100
 
 
+def _get_video_codec(video_path: str) -> str:
+    """Detect the video codec name via ffprobe."""
+    try:
+        res = subprocess.run(
+            [
+                "ffprobe",
+                "-v", "error",
+                "-select_streams", "v:0",
+                "-show_entries", "stream=codec_name",
+                "-of", "csv=p=0",
+                video_path,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return res.stdout.strip().lower()
+    except Exception:
+        return ""
+
+
 async def render_video(
     job_id: str,
     video_path: str,
@@ -116,6 +137,10 @@ async def render_video(
     sfx_enabled: bool,
     output_dir: str,
     video_duration: Optional[float] = None,
+    dialogue_volume: float = 1.0,
+    music_volume: float = 1.0,
+    sfx_volume: float = 1.0,
+    resolution: str = "1080p",
 ) -> str:
     """
     Build FFmpeg command and run it asynchronously.
@@ -133,6 +158,10 @@ async def render_video(
         sfx_events=sfx_events if sfx_enabled else [],
         music_config=music_config if music_enabled else None,
         video_duration=video_duration,
+        dialogue_volume=dialogue_volume,
+        music_volume=music_volume,
+        sfx_volume=sfx_volume,
+        resolution=resolution,
     )
 
     print(f"[renderer] Running FFmpeg:\n  {' '.join(cmd)}")
@@ -160,10 +189,13 @@ def _build_command(
     sfx_events: List[SFXEvent],
     music_config: Optional[MusicConfig],
     video_duration: float = 0.0,
+    dialogue_volume: float = 1.0,
+    music_volume: float = 1.0,
+    sfx_volume: float = 1.0,
+    resolution: str = "1080p",
 ) -> List[str]:
     """
-    Construct the FFmpeg command with a dynamic filter_complex graph.
-    Music is added back-to-back across the timeline until the video ends, then trimmed.
+    Construct the FFmpeg command with a dynamic filter_complex graph and stem mix bus levels.
     """
     video_dur = video_duration if video_duration > 0 else _get_file_duration(Path(video_path))
 
@@ -201,35 +233,41 @@ def _build_command(
     filter_parts: List[str] = []
     mix_labels: List[str] = []
 
+    # 1. Dialogue / Native Video Audio Stem
     if has_video_audio:
-        mix_labels.append("[0:a]")
+        d_vol = max(0.0, min(2.0, float(dialogue_volume)))
+        filter_parts.append(f"[0:a]volume={d_vol:.3f}[dialogue_track]")
+        mix_labels.append("[dialogue_track]")
     else:
         # Generate silence if video has no native audio
         filter_parts.append("anullsrc=channel_layout=stereo:sample_rate=44100[silent_base]")
         mix_labels.append("[silent_base]")
 
+    # 2. Background Music Stem
     if music_input_idx is not None and music_config:
-        vol = max(0.01, min(1.0, float(music_config.volume)))
-        # Detect real sample rate so aloop size is frame-accurate
+        base_vol = max(0.01, min(1.0, float(music_config.volume)))
+        m_vol = max(0.0, min(2.0, base_vol * float(music_volume)))
         resolved_music_path = _resolve_file(music_config.track_path)
         music_sr = _get_sample_rate(resolved_music_path) if resolved_music_path else 44100
         repeats = max(1, math.ceil(video_dur / max(0.1, music_track_dur)) + 1)
         samples = int(music_track_dur * music_sr)
         filter_parts.append(
-            f"[{music_input_idx}:a]volume={vol},"
+            f"[{music_input_idx}:a]volume={m_vol:.3f},"
             f"aloop=loop={repeats}:size={samples},"
-            f"atrim=0:{video_dur},"
+            f"atrim=0:{video_dur:.3f},"
             f"asetpts=PTS-STARTPTS[music_track]"
         )
         mix_labels.append("[music_track]")
 
+    # 3. SFX Layer Stem
     for i, (idx, event) in enumerate(zip(sfx_input_indices, valid_events)):
         delay_ms = max(0, int(event.timestamp * 1000))
-        vol = max(0.01, min(2.0, float(event.volume)))
+        base_sfx_vol = max(0.01, min(2.0, float(event.volume)))
+        s_vol = max(0.0, min(2.0, base_sfx_vol * float(sfx_volume)))
         label = f"[sfx{i}]"
 
         # Build filter chain for this SFX input
-        sfx_filters = [f"[{idx}:a]volume={vol}"]
+        sfx_filters = [f"[{idx}:a]volume={s_vol:.3f}"]
         if event.duration and event.duration > 0:
             # Trim the SFX to its allowed window so it never bleeds into the next event
             sfx_filters.append(f"atrim=0:{round(event.duration, 3)}")
@@ -241,7 +279,7 @@ def _build_command(
 
     n_inputs = len(mix_labels)
     if n_inputs == 1 and has_video_audio:
-        filter_complex = "[0:a]acopy[out]"
+        filter_complex = "[0:a]volume=1.0[out]"
     elif n_inputs == 1 and not has_video_audio:
         filter_complex = "anullsrc=channel_layout=stereo:sample_rate=44100[out]"
     else:
@@ -251,17 +289,46 @@ def _build_command(
         )
         filter_complex = "; ".join(filter_parts)
 
+    # ---- Video Encoding Options ----------------------------------------
+    codec = _get_video_codec(video_path)
+    is_native_h264_mp4 = (codec in ("h264", "avc1")) and video_path.lower().endswith(".mp4") and resolution != "4K"
+
+    if resolution == "4K":
+        video_opts = [
+            "-c:v", "libx264",
+            "-vf", "scale=3840:2160:force_original_aspect_ratio=decrease,pad=3840:2160:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-pix_fmt", "yuv420p",
+            "-preset", "veryfast",
+            "-crf", "18",
+        ]
+    elif is_native_h264_mp4:
+        video_opts = ["-c:v", "copy"]
+    else:
+        # Transcode non-mp4/webm/vp9/mkv into standard web-compatible H.264 MP4
+        video_opts = [
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            "-preset", "veryfast",
+            "-crf", "20",
+        ]
+
     # ---- Full command --------------------------------------------------
-    cmd = ["ffmpeg", "-y"] + inputs + [
-        "-filter_complex", filter_complex,
-        "-map", "0:v",
-        "-map", "[out]",
-        "-c:v", "copy",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        "-shortest",
-        "-movflags", "+faststart",
-        str(Path(output_path).resolve()),
-    ]
+    cmd = (
+        ["ffmpeg", "-y"]
+        + inputs
+        + [
+            "-filter_complex", filter_complex,
+            "-map", "0:v",
+            "-map", "[out]",
+        ]
+        + video_opts
+        + [
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-shortest",
+            "-movflags", "+faststart",
+            str(Path(output_path).resolve()),
+        ]
+    )
 
     return cmd

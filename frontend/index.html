@@ -815,6 +815,16 @@
         </div>
 
         <!-- 2-Column Mixdown Matrix -->
+        <div id="export-no-job-banner" class="hidden mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">warning</span>
+            <span>No active session analyzed yet. Upload a video & script or try a demo first.</span>
+          </div>
+          <button onclick="closeMixdownModal(); launchInteractiveDemo();" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold font-label-mono text-[10px]">
+            ⚡ LOAD DEMO
+          </button>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4">
           <!-- Left 7 Columns: Stems Mixer -->
           <div class="md:col-span-7 space-y-3">
@@ -825,34 +835,37 @@
             <!-- Dialogue Stem -->
             <div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant/10 space-y-1.5">
               <div class="flex items-center justify-between text-xs font-bold">
-                <span class="text-secondary flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-xs">record_voice_over</span> Dialogue.wav
+                <span class="text-secondary flex items-center gap-1.5 truncate max-w-[240px]">
+                  <span class="material-symbols-outlined text-xs">record_voice_over</span>
+                  <span id="mix-dialogue-name">Dialogue / Narration</span>
                 </span>
-                <span class="font-timecode text-secondary" id="mix-dialogue-vol-text">85%</span>
+                <span class="font-timecode text-secondary" id="mix-dialogue-vol-text">100%</span>
               </div>
-              <input type="range" id="mix-dialogue-vol" min="0" max="100" value="85" oninput="document.getElementById('mix-dialogue-vol-text').innerText = this.value + '%'" class="w-full"/>
+              <input type="range" id="mix-dialogue-vol" min="0" max="150" value="100" oninput="document.getElementById('mix-dialogue-vol-text').innerText = this.value + '%'" class="w-full"/>
             </div>
 
             <!-- Music Stem -->
             <div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant/10 space-y-1.5">
               <div class="flex items-center justify-between text-xs font-bold">
-                <span class="text-tertiary flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-xs">music_note</span> Ambient_Score.wav
+                <span class="text-tertiary flex items-center gap-1.5 truncate max-w-[240px]">
+                  <span class="material-symbols-outlined text-xs">music_note</span>
+                  <span id="mix-music-name">Ambient_Score.wav</span>
                 </span>
-                <span class="font-timecode text-tertiary" id="mix-music-vol-text">60%</span>
+                <span class="font-timecode text-tertiary" id="mix-music-vol-text">100%</span>
               </div>
-              <input type="range" id="mix-music-vol" min="0" max="100" value="60" oninput="document.getElementById('mix-music-vol-text').innerText = this.value + '%'" class="w-full"/>
+              <input type="range" id="mix-music-vol" min="0" max="150" value="100" oninput="document.getElementById('mix-music-vol-text').innerText = this.value + '%'" class="w-full"/>
             </div>
 
             <!-- SFX Stem -->
             <div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant/10 space-y-1.5">
               <div class="flex items-center justify-between text-xs font-bold">
-                <span class="text-primary flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-xs">explosion</span> SFX_Layer
+                <span class="text-primary flex items-center gap-1.5 truncate max-w-[240px]">
+                  <span class="material-symbols-outlined text-xs">explosion</span>
+                  <span id="mix-sfx-name">SFX_Layer</span>
                 </span>
-                <span class="font-timecode text-primary" id="mix-sfx-vol-text">75%</span>
+                <span class="font-timecode text-primary" id="mix-sfx-vol-text">100%</span>
               </div>
-              <input type="range" id="mix-sfx-vol" min="0" max="100" value="75" oninput="document.getElementById('mix-sfx-vol-text').innerText = this.value + '%'" class="w-full"/>
+              <input type="range" id="mix-sfx-vol" min="0" max="150" value="100" oninput="document.getElementById('mix-sfx-vol-text').innerText = this.value + '%'" class="w-full"/>
             </div>
           </div>
 

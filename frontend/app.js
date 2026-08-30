@@ -884,14 +884,62 @@ function insertSoundAtPlayhead(path, type, filename) {
 
 // ── Export & Mixdown Dialog ─────────────────────────────────────────────────
 function openMixdownModal() {
-  document.getElementById("mixdown-modal").classList.remove("hidden");
-  document.getElementById("btn-export-start").classList.remove("hidden");
-  document.getElementById("btn-export-download").classList.add("hidden");
-  document.getElementById("export-progress-box").classList.add("hidden");
+  const modal = document.getElementById("mixdown-modal");
+  const noJobBanner = document.getElementById("export-no-job-banner");
+  const startBtn = document.getElementById("btn-export-start");
+  const downloadBtn = document.getElementById("btn-export-download");
+  const progressBox = document.getElementById("export-progress-box");
+
+  modal.classList.remove("hidden");
+  startBtn.classList.remove("hidden");
+  downloadBtn.classList.add("hidden");
+  progressBox.classList.add("hidden");
+
+  // Check if active job exists
+  if (!state.jobId) {
+    if (noJobBanner) noJobBanner.classList.remove("hidden");
+    startBtn.disabled = true;
+    startBtn.classList.add("opacity-50", "cursor-not-allowed");
+  } else {
+    if (noJobBanner) noJobBanner.classList.add("hidden");
+    startBtn.disabled = false;
+    startBtn.classList.remove("opacity-50", "cursor-not-allowed");
+
+    // Populate stem track labels
+    const dialLabel = document.getElementById("mix-dialogue-name");
+    const musicLabel = document.getElementById("mix-music-name");
+    const sfxLabel = document.getElementById("mix-sfx-name");
+
+    if (dialLabel) {
+      dialLabel.innerText = state.videoFile ? state.videoFile.name : "Dialogue / Speech Audio";
+    }
+    if (musicLabel) {
+      if (state.musicConfig && state.musicConfig.track_path) {
+        const parts = state.musicConfig.track_path.split("/");
+        musicLabel.innerText = parts[parts.length - 1].replace(/\.(wav|mp3|ogg)$/i, "");
+      } else {
+        musicLabel.innerText = "Ambient Score";
+      }
+    }
+    if (sfxLabel) {
+      sfxLabel.innerText = `${state.events.length} Sound Effects Bus`;
+    }
+
+    // Update estimated file size
+    updateExportSizeEstimation();
+  }
 }
 
 function closeMixdownModal() {
   document.getElementById("mixdown-modal").classList.add("hidden");
+}
+
+function updateExportSizeEstimation() {
+  const dur = state.videoDuration || 30;
+  const is4K = state.exportResolution === "4K";
+  const estMB = is4K ? Math.max(20, Math.round(dur * 2.2)) : Math.max(8, Math.round(dur * 0.75));
+  const sizeElem = document.getElementById("export-est-size");
+  if (sizeElem) sizeElem.innerText = `${estMB} MB`;
 }
 
 function setExportResolution(res) {
@@ -904,10 +952,15 @@ function setExportResolution(res) {
     ? "py-1.5 rounded-lg text-xs font-bold bg-primary-container text-on-primary-container font-label-mono"
     : "py-1.5 rounded-lg text-xs font-bold bg-surface-container text-on-surface-variant font-label-mono";
 
-  document.getElementById("export-est-size").innerText = res === "4K" ? "120 MB" : "45 MB";
+  updateExportSizeEstimation();
 }
 
 async function triggerFFmpegExport() {
+  if (!state.jobId) {
+    showToast("Please analyze a video before exporting.", "error");
+    return;
+  }
+
   const startBtn = document.getElementById("btn-export-start");
   const progressBox = document.getElementById("export-progress-box");
   const progressBar = document.getElementById("export-progress-bar");
@@ -917,17 +970,43 @@ async function triggerFFmpegExport() {
 
   startBtn.classList.add("hidden");
   progressBox.classList.remove("hidden");
+  stageText.classList.remove("text-error");
 
-  let p = 10;
-  progressBar.style.width = p + "%";
-  progressText.innerText = p + "%";
-  stageText.innerText = "Applying sample-accurate audio delays...";
+  // Read stem bus mixer sliders
+  const dialogueVol = (parseFloat(document.getElementById("mix-dialogue-vol")?.value || 100)) / 100;
+  const musicVol = (parseFloat(document.getElementById("mix-music-vol")?.value || 100)) / 100;
+  const sfxVol = (parseFloat(document.getElementById("mix-sfx-vol")?.value || 100)) / 100;
+
+  // Smooth stage animation
+  let currentPct = 15;
+  progressBar.style.width = currentPct + "%";
+  progressText.innerText = currentPct + "%";
+  stageText.innerText = "Applying sample-accurate audio delays & stem levels...";
+
+  const progressInterval = setInterval(() => {
+    if (currentPct < 85) {
+      currentPct += Math.floor(Math.random() * 12) + 6;
+      if (currentPct > 85) currentPct = 85;
+      progressBar.style.width = currentPct + "%";
+      progressText.innerText = currentPct + "%";
+
+      if (currentPct >= 35 && currentPct < 65) {
+        stageText.innerText = "Summing multi-stem filtergraph & ducking buses...";
+      } else if (currentPct >= 65) {
+        stageText.innerText = "Encoding high-definition H.264 video & AAC audio...";
+      }
+    }
+  }, 400);
 
   const exportPayload = {
     sfx_events: state.events,
     music_config: state.musicConfig,
     music_enabled: state.settings.music_enabled,
     sfx_enabled: state.settings.sfx_enabled,
+    dialogue_volume: dialogueVol,
+    music_volume: musicVol,
+    sfx_volume: sfxVol,
+    resolution: state.exportResolution || "1080p",
   };
 
   try {
@@ -937,8 +1016,11 @@ async function triggerFFmpegExport() {
       body: JSON.stringify(exportPayload),
     });
 
+    clearInterval(progressInterval);
+
     if (!res.ok) {
-      throw new Error("FFmpeg render failed on backend.");
+      const err = await res.json().catch(() => ({ detail: "FFmpeg render failed on backend." }));
+      throw new Error(err.detail || "FFmpeg render failed on backend.");
     }
 
     progressBar.style.width = "100%";
@@ -948,13 +1030,23 @@ async function triggerFFmpegExport() {
     const blob = await res.blob();
     const downloadUrl = URL.createObjectURL(blob);
 
+    const outFilename = state.videoFile?.name
+      ? state.videoFile.name.replace(/\.[^/.]+$/, "") + "_auto_audio.mp4"
+      : `auto_audio_${state.jobId.slice(0, 8)}.mp4`;
+
     downloadBtn.href = downloadUrl;
+    downloadBtn.download = outFilename;
     downloadBtn.classList.remove("hidden");
-    showToast("Export completed successfully!", "success");
+
+    // Auto-trigger download
+    downloadBtn.click();
+    showToast("Export completed! Video downloaded successfully.", "success");
   } catch (err) {
+    clearInterval(progressInterval);
     stageText.innerText = "Export failed: " + err.message;
     stageText.classList.add("text-error");
     startBtn.classList.remove("hidden");
+    showToast(err.message, "error");
   }
 }
 

@@ -59,6 +59,10 @@ async def export_video(
         sfx_enabled=body.sfx_enabled,
         output_dir=str(OUTPUTS_DIR),
         video_duration=stored_duration,
+        dialogue_volume=body.dialogue_volume,
+        music_volume=body.music_volume,
+        sfx_volume=body.sfx_volume,
+        resolution=body.resolution,
     )
 
     return FileResponse(

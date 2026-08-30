@@ -101,6 +101,10 @@ class ExportRequest(BaseModel):
     music_config: Optional[MusicConfig] = None
     music_enabled: bool = True
     sfx_enabled: bool = True
+    dialogue_volume: float = 1.0     # 0.0 – 2.0 multiplier for original dialogue / video audio
+    music_volume: float = 1.0        # 0.0 – 2.0 multiplier for background music stem
+    sfx_volume: float = 1.0          # 0.0 – 2.0 multiplier for SFX stem
+    resolution: str = "1080p"        # "1080p" | "4K"
 
 
 class UploadResponse(BaseModel):
