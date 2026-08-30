@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 
-from models.schemas import AnalyzedSegment, SFXEvent, ContentTag, AnalyzeSettings
+from models.schemas import AnalyzedSegment, SFXEvent, ContentTag, AnalyzeSettings, AIStyleProfile
 
 # Root path to the assets directory (two levels up from services/)
 _PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -273,14 +273,11 @@ def build_sfx_timeline(
     segments: List[AnalyzedSegment],
     settings: AnalyzeSettings,
     video_duration: float,
+    ai_style: Optional[AIStyleProfile] = None,
 ) -> List[SFXEvent]:
     """
-    Convert analyzed segments into a dynamic, non-repetitive list of SFXEvent objects.
-
-    Rules:
-    - Minimum 2.2s gap between SFX events
-    - Intelligent contextual sound selection (no repeating same sounds)
-    - Timestamps clamped to [0, video_duration]
+    Convert analyzed segments into a dynamic, non-repetitive list of SFXEvent objects,
+    modulated by the AI Style Profile (pacing, acoustic palette, intensity).
     """
     if not settings.sfx_enabled:
         return []
@@ -288,7 +285,15 @@ def build_sfx_timeline(
     metadata = _load_metadata()
     events: List[SFXEvent] = []
     last_sfx_time: float = -999.0
-    MIN_GAP = 2.2  # minimum seconds between SFX events
+
+    # Dynamic minimum gap based on AI-determined pacing
+    effective_intensity = ai_style.sfx_intensity if ai_style else settings.sfx_intensity
+    if ai_style and ai_style.pacing in ("fast", "frenetic"):
+        MIN_GAP = 1.8
+    elif ai_style and ai_style.pacing == "slow":
+        MIN_GAP = 3.0
+    else:
+        MIN_GAP = 2.2
 
     # Recency memory: {path: last_placed_timestamp}
     recent_usage: Dict[str, float] = {}
@@ -313,7 +318,7 @@ def build_sfx_timeline(
         picked = _pick_intelligent_sfx(
             sfx_type=sfx_type,
             text_cue=seg.text,
-            target_intensity=float(settings.sfx_intensity),
+            target_intensity=float(effective_intensity),
             current_ts=ts,
             recent_usage=recent_usage,
             metadata=metadata,
@@ -327,7 +332,7 @@ def build_sfx_timeline(
         recent_usage[sfx_path] = ts
 
         # Scale volume: base_volume * sfx_intensity
-        volume = min(1.0, sfx_cfg["base_volume"] * (0.5 + float(settings.sfx_intensity)))
+        volume = min(1.0, sfx_cfg["base_volume"] * (0.5 + float(effective_intensity)))
 
         events.append(
             SFXEvent(

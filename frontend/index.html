@@ -175,10 +175,14 @@
         </span>
       </div>
 
-      <div class="text-center">
+      <div class="text-center flex items-center gap-3">
         <h1 class="font-headline-sm text-base text-primary font-bold tracking-tight" id="project-header-title">
           Untitled Project — AI Sound Design
         </h1>
+        <div id="ai-style-pill" class="hidden items-center gap-1.5 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-xs text-primary font-bold cursor-pointer hover:bg-primary/25 transition-all shadow-sm" onclick="openStyleDetailsModal()" title="View AI Script Sound Design Rationale">
+          <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+          <span id="ai-style-name-badge">AI Style</span>
+        </div>
       </div>
 
       <div class="flex items-center gap-3">
@@ -318,78 +322,85 @@
           </div>
         </div>
 
-        <!-- Style Presets Grid (Design 1) -->
-        <div class="space-y-3 pt-2">
+        <!-- Autonomous AI Sound Direction (Replaces static presets) -->
+        <div class="space-y-4 pt-2">
           <div class="flex items-center justify-between">
-            <div>
-              <h3 class="font-headline-sm text-sm font-bold text-on-surface uppercase tracking-wider">
-                Style Presets
-              </h3>
-              <p class="font-caption text-xs text-on-surface-variant">Choose an AI scoring template to start.</p>
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[18px] animate-pulse">auto_awesome</span>
+              </div>
+              <div>
+                <h3 class="font-headline-sm text-sm font-bold text-on-surface uppercase tracking-wider flex items-center gap-2">
+                  <span>Autonomous AI Sound Director</span>
+                  <span class="px-2 py-0.5 rounded-full bg-tertiary/20 text-tertiary border border-tertiary/30 text-[9px] font-label-mono font-bold">SCRIPT-DRIVEN</span>
+                </h3>
+                <p class="font-caption text-xs text-on-surface-variant">AI reads your narration script to determine the optimal musical genre, mood, SFX palette, and dynamic intensity.</p>
+              </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="presets-container">
-            <!-- Preset 1: Action & Hype -->
-            <div onclick="selectPreset('action')" id="preset-action" class="preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-primary bg-gradient-to-br from-primary/20 via-surface-container to-surface-container shadow-lg shadow-primary/10 ring-1 ring-primary">
-              <div class="flex items-center justify-between">
-                <span class="font-label-mono text-xs text-secondary font-bold tracking-widest">01</span>
-                <button type="button" onclick="previewPresetSound('assets/sfx/impacts/impact_01.wav', event)" class="p-1 rounded-full hover:bg-surface-container-high text-primary" title="Audition Preset">
-                  <span class="material-symbols-outlined text-[16px]">volume_up</span>
-                </button>
+          <!-- Neural Sound Director Features Matrix -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="ai-director-matrix">
+            <!-- Director Pillar 1 -->
+            <div class="group relative rounded-2xl overflow-hidden bg-surface-container/70 border border-outline-variant/20 p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] hover:border-primary/50 hover:bg-surface-container">
+              <div class="flex items-center justify-between mb-2">
+                <span class="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <span class="material-symbols-outlined text-[18px]">psychology</span>
+                </span>
+                <span class="font-label-mono text-[10px] text-secondary font-bold tracking-widest uppercase">Theme & Genre</span>
               </div>
               <div>
-                <h4 class="font-headline-sm text-sm font-bold text-on-surface mb-0.5">Action & Hype</h4>
+                <h4 class="font-headline-sm text-xs font-bold text-on-surface mb-1">Adaptive Mood & Genre</h4>
                 <p class="font-caption text-[11px] text-on-surface-variant leading-snug">
-                  Heavy booms, cinematic impacts & intense tension risers.
+                  Identifies mystery, action, sci-fi anomaly, or tech pacing from speech cues.
                 </p>
               </div>
             </div>
 
-            <!-- Preset 2: Dark Mystery -->
-            <div onclick="selectPreset('mystery')" id="preset-mystery" class="preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-outline-variant/20 hover:border-outline-variant/50 hover:-translate-y-1">
-              <div class="flex items-center justify-between">
-                <span class="font-label-mono text-xs text-secondary font-bold tracking-widest">02</span>
-                <button type="button" onclick="previewPresetSound('assets/sfx/glitches/glitch_01.wav', event)" class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary" title="Audition Preset">
-                  <span class="material-symbols-outlined text-[16px]">volume_up</span>
-                </button>
+            <!-- Director Pillar 2 -->
+            <div class="group relative rounded-2xl overflow-hidden bg-surface-container/70 border border-outline-variant/20 p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] hover:border-primary/50 hover:bg-surface-container">
+              <div class="flex items-center justify-between mb-2">
+                <span class="w-8 h-8 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary">
+                  <span class="material-symbols-outlined text-[18px]">equalizer</span>
+                </span>
+                <span class="font-label-mono text-[10px] text-secondary font-bold tracking-widest uppercase">Dynamic Arc</span>
               </div>
               <div>
-                <h4 class="font-headline-sm text-sm font-bold text-on-surface mb-0.5">Dark Mystery</h4>
+                <h4 class="font-headline-sm text-xs font-bold text-on-surface mb-1">Calibrated Intensities</h4>
                 <p class="font-caption text-[11px] text-on-surface-variant leading-snug">
-                  Atmospheric beds, subtle foley & digital glitches.
+                  Balances background music beds, reveal impacts, and silence drops automatically.
                 </p>
               </div>
             </div>
 
-            <!-- Preset 3: Viral Social -->
-            <div onclick="selectPreset('viral')" id="preset-viral" class="preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-outline-variant/20 hover:border-outline-variant/50 hover:-translate-y-1">
-              <div class="flex items-center justify-between">
-                <span class="font-label-mono text-xs text-secondary font-bold tracking-widest">03</span>
-                <button type="button" onclick="previewPresetSound('assets/sfx/whooshes/whoosh_01.wav', event)" class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary" title="Audition Preset">
-                  <span class="material-symbols-outlined text-[16px]">volume_up</span>
-                </button>
+            <!-- Director Pillar 3 -->
+            <div class="group relative rounded-2xl overflow-hidden bg-surface-container/70 border border-outline-variant/20 p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] hover:border-primary/50 hover:bg-surface-container">
+              <div class="flex items-center justify-between mb-2">
+                <span class="w-8 h-8 rounded-xl bg-tertiary/10 border border-tertiary/20 flex items-center justify-center text-tertiary">
+                  <span class="material-symbols-outlined text-[18px]">graphic_eq</span>
+                </span>
+                <span class="font-label-mono text-[10px] text-secondary font-bold tracking-widest uppercase">Acoustics</span>
               </div>
               <div>
-                <h4 class="font-headline-sm text-sm font-bold text-on-surface mb-0.5">Viral Social</h4>
+                <h4 class="font-headline-sm text-xs font-bold text-on-surface mb-1">Contextual SFX Palette</h4>
                 <p class="font-caption text-[11px] text-on-surface-variant leading-snug">
-                  Fast swooshes, punchy transitions & reward chimes.
+                  Selects from 103+ categorized impacts, risers, glitches, and whooshes.
                 </p>
               </div>
             </div>
 
-            <!-- Preset 4: Subtle Ambient -->
-            <div onclick="selectPreset('subtle')" id="preset-subtle" class="preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-outline-variant/20 hover:border-outline-variant/50 hover:-translate-y-1">
-              <div class="flex items-center justify-between">
-                <span class="font-label-mono text-xs text-secondary font-bold tracking-widest">04</span>
-                <button type="button" onclick="previewPresetSound('assets/sfx/transitions/transition_01.wav', event)" class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary" title="Audition Preset">
-                  <span class="material-symbols-outlined text-[16px]">volume_up</span>
-                </button>
+            <!-- Director Pillar 4 -->
+            <div class="group relative rounded-2xl overflow-hidden bg-surface-container/70 border border-outline-variant/20 p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] hover:border-primary/50 hover:bg-surface-container">
+              <div class="flex items-center justify-between mb-2">
+                <span class="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <span class="material-symbols-outlined text-[18px]">speed</span>
+                </span>
+                <span class="font-label-mono text-[10px] text-secondary font-bold tracking-widest uppercase">Timecodes</span>
               </div>
               <div>
-                <h4 class="font-headline-sm text-sm font-bold text-on-surface mb-0.5">Subtle Ambient</h4>
+                <h4 class="font-headline-sm text-xs font-bold text-on-surface mb-1">Sample-Accurate Sync</h4>
                 <p class="font-caption text-[11px] text-on-surface-variant leading-snug">
-                  Low background score & organic sound effects.
+                  Maps sound design directly to subtitle timecodes without manual keyframing.
                 </p>
               </div>
             </div>
@@ -480,10 +491,14 @@
               </div>
 
               <span class="material-symbols-outlined text-[48px] text-primary mb-3 animate-pulse">graphic_eq</span>
-              <h4 class="font-headline-sm text-sm text-white font-bold mb-1">
+              <h4 class="font-headline-sm text-sm text-white font-bold mb-1" id="analysis-status-headline">
                 Synthesizing Multi-Stem Audio Layers
               </h4>
-              <p class="font-caption text-xs text-on-surface-variant text-center max-w-xs">
+              <div id="analysis-style-detected-badge" class="mt-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/40 text-primary text-xs font-bold font-label-mono flex items-center gap-1.5 animate-in fade-in">
+                <span class="material-symbols-outlined text-[14px] animate-spin">sync</span>
+                <span id="analysis-style-text">Analyzing Script Tone & Acoustic Palette...</span>
+              </div>
+              <p class="font-caption text-xs text-on-surface-variant text-center max-w-xs mt-2" id="analysis-status-subtext">
                 Matching narrative inflections with 48kHz acoustic textures and tension drops.
               </p>
             </div>
@@ -614,6 +629,33 @@
               <button onclick="deleteInspectorClip()" class="px-2.5 py-1 rounded bg-error/10 hover:bg-error/20 text-error font-label-mono text-[10px] font-bold border border-error/20" title="Delete Clip (Delete)">
                 DELETE
               </button>
+            </div>
+          </div>
+
+          <!-- AI Script Sound Direction Card -->
+          <div class="mt-auto pt-3 border-t border-outline-variant/10 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="font-label-mono text-[10px] text-primary uppercase tracking-wider font-bold flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[14px]">auto_awesome</span> AI Script Direction
+              </span>
+              <button onclick="openStyleDetailsModal()" class="text-[10px] font-label-mono text-tertiary hover:underline cursor-pointer">
+                View Rationale →
+              </button>
+            </div>
+
+            <div class="p-3 rounded-xl bg-surface-container/60 border border-primary/20 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-white" id="studio-style-name">AI Decided Style</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-secondary/15 text-secondary border border-secondary/30 font-label-mono font-bold" id="studio-style-mood">Mood</span>
+              </div>
+              <p class="text-[11px] text-on-surface-variant line-clamp-2 leading-relaxed" id="studio-style-reasoning">
+                AI analyzed narration cues and synthesized a custom acoustic landscape.
+              </p>
+              <div class="flex items-center gap-3 pt-1 text-[10px] font-label-mono text-on-surface-variant">
+                <span class="flex items-center gap-1"><span class="text-primary font-bold">🎵 Music:</span> <span id="studio-music-int">70%</span></span>
+                <span class="flex items-center gap-1"><span class="text-secondary font-bold">💥 SFX:</span> <span id="studio-sfx-int">65%</span></span>
+                <span class="flex items-center gap-1"><span class="text-tertiary font-bold">⚡ Pacing:</span> <span id="studio-pacing">mod</span></span>
+              </div>
             </div>
           </div>
         </div>
@@ -892,6 +934,82 @@
           <div class="flex justify-between items-center py-1">
             <span class="text-on-surface-variant">Toggle Mute / Unmute</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-container-highest font-timecode text-primary font-bold">M</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- AI SOUND DIRECTION DETAILS MODAL                                        -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="ai-style-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden p-4">
+      <div class="w-full max-w-lg bg-surface-container rounded-2xl border border-primary/30 p-6 text-on-surface shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+        <div class="flex items-center justify-between border-b border-outline-variant/15 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+            </span>
+            <div>
+              <h3 class="font-headline-sm text-sm font-bold text-white">AI Sound Director Profile</h3>
+              <p class="text-[10px] text-on-surface-variant">Autonomous acoustic architecture derived from script</p>
+            </div>
+          </div>
+          <button onclick="closeStyleDetailsModal()" class="text-on-surface-variant hover:text-white cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <div class="space-y-3.5 text-xs font-body-base">
+          <!-- Style & Mood Row -->
+          <div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant/10 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] text-on-surface-variant font-label-mono uppercase block">Style Archetype</span>
+              <span class="text-sm font-bold text-primary font-headline-sm" id="modal-style-name">Dark Mystery & Glitch</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-on-surface-variant font-label-mono uppercase block">Mood & Tone</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-secondary/15 text-secondary border border-secondary/30 text-xs font-bold font-label-mono" id="modal-style-mood">Tense & Unsettling</span>
+            </div>
+          </div>
+
+          <!-- Narrative Theme -->
+          <div class="space-y-1">
+            <span class="text-[10px] font-label-mono text-on-surface-variant uppercase font-bold">Narrative Theme</span>
+            <p class="text-xs text-white p-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant/10" id="modal-style-theme">
+              Simulation anomalies and alternate reality distortion cues.
+            </p>
+          </div>
+
+          <!-- AI Reasoning / Rationale -->
+          <div class="space-y-1">
+            <span class="text-[10px] font-label-mono text-on-surface-variant uppercase font-bold">AI Sound Design Rationale</span>
+            <p class="text-xs text-on-surface-variant leading-relaxed p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/10" id="modal-style-reasoning">
+              AI identified surreal anomaly keywords and reality-shifting cues, configuring atmospheric suspense drones, digital glitches, and dramatic tension risers.
+            </p>
+          </div>
+
+          <!-- Metrics Matrix -->
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant/10">
+              <span class="text-[10px] text-on-surface-variant font-label-mono uppercase block">Music Bed</span>
+              <span class="text-xs font-bold text-primary font-timecode" id="modal-music-int">74%</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant/10">
+              <span class="text-[10px] text-on-surface-variant font-label-mono uppercase block">SFX Impact</span>
+              <span class="text-xs font-bold text-secondary font-timecode" id="modal-sfx-int">70%</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant/10">
+              <span class="text-[10px] text-on-surface-variant font-label-mono uppercase block">Pacing</span>
+              <span class="text-xs font-bold text-tertiary font-label-mono uppercase" id="modal-pacing">Moderate</span>
+            </div>
+          </div>
+
+          <!-- Target Acoustic Palette -->
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-label-mono text-on-surface-variant uppercase font-bold">Target Acoustic Palette</span>
+            <div class="flex flex-wrap gap-1.5" id="modal-palette-tags">
+              <!-- Dynamically populated palette badges -->
+            </div>
           </div>
         </div>
       </div>

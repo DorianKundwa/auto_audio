@@ -62,6 +62,19 @@ class MusicConfig(BaseModel):
     clips: List[MusicClip] = []
 
 
+class AIStyleProfile(BaseModel):
+    style_name: str                   # e.g. "Dark Mystery & Glitch", "High-Stakes Action"
+    mood: str                         # e.g. "Tense & Unsettling", "High-Energy & Urgent"
+    genre: str                        # e.g. "dark_documentary", "mysterious", "upbeat", "action"
+    music_intensity: float = 0.70     # 0.0 – 1.0 AI-computed intensity
+    sfx_intensity: float = 0.65       # 0.0 – 1.0 AI-computed intensity
+    silence_drops: bool = True        # AI decision whether dramatic silence pauses fit
+    pacing: str = "moderate"          # "slow" | "moderate" | "fast" | "frenetic"
+    narrative_theme: str = ""         # Brief theme extracted from subtitles
+    acoustic_palette: List[str] = []  # e.g. ["impacts", "risers", "glitches", "whooshes"]
+    reasoning: str = ""               # AI explanation of why this style fits the script
+
+
 class TimelineResult(BaseModel):
     job_id: str
     video_path: str
@@ -69,6 +82,7 @@ class TimelineResult(BaseModel):
     sfx_events: List[SFXEvent]
     music_config: MusicConfig
     analyzed_segments: List[AnalyzedSegment]
+    ai_style: Optional[AIStyleProfile] = None
 
 
 class AnalyzeSettings(BaseModel):

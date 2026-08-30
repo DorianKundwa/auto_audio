@@ -10,7 +10,7 @@ const state = {
   videoFile: null,
   srtFile: null,
   scriptMode: "upload", // 'upload' | 'transcribe'
-  activePreset: "action",
+  aiStyle: null, // Autonomous AI sound director profile
   settings: {
     music_enabled: true,
     sfx_enabled: true,
@@ -83,32 +83,24 @@ async function checkBackendHealth() {
   }
 }
 
-// ── Preset Selection ────────────────────────────────────────────────────────
-const PRESETS = {
-  action: { music_intensity: 0.85, sfx_intensity: 0.8, silence_drops: true },
-  mystery: { music_intensity: 0.65, sfx_intensity: 0.5, silence_drops: true },
-  viral: { music_intensity: 0.70, sfx_intensity: 0.7, silence_drops: false },
-  subtle: { music_intensity: 0.35, sfx_intensity: 0.3, silence_drops: false },
-};
-
-function selectPreset(presetKey) {
-  state.activePreset = presetKey;
-  Object.assign(state.settings, PRESETS[presetKey]);
-
-  document.querySelectorAll(".preset-card").forEach((card) => {
-    card.className = "preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-outline-variant/20 hover:border-outline-variant/50 hover:-translate-y-1";
-  });
-
-  const activeCard = document.getElementById(`preset-${presetKey}`);
-  if (activeCard) {
-    activeCard.className = "preset-card group relative rounded-2xl overflow-hidden bg-surface-container cursor-pointer p-4 transition-all duration-300 flex flex-col justify-between min-h-[130px] border border-primary bg-gradient-to-br from-primary/20 via-surface-container to-surface-container shadow-lg shadow-primary/10 ring-1 ring-primary";
-  }
-}
-
-function previewPresetSound(sfxPath, event) {
+// ── Sound Preview & AI Style Modal ──────────────────────────────────────────
+function previewSound(sfxPath, event) {
   if (event) event.stopPropagation();
   state.previewAudio.src = "/" + sfxPath.replace(/^\//, "");
   state.previewAudio.play().catch(() => {});
+}
+const previewPresetSound = previewSound; // Backwards compatibility alias
+
+function openStyleDetailsModal() {
+  const modal = document.getElementById("ai-style-modal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+}
+
+function closeStyleDetailsModal() {
+  const modal = document.getElementById("ai-style-modal");
+  if (!modal) return;
+  modal.classList.add("hidden");
 }
 
 // ── Drag & Drop Handlers ────────────────────────────────────────────────────
@@ -329,7 +321,7 @@ async function startAnalysisWorkflow() {
 
     const { job_id } = await uploadRes.json();
     state.jobId = job_id;
-    updateAnalysisProgress(50, "Extracting semantic speech hooks...");
+    updateAnalysisProgress(40, "AI analyzing script style & acoustic palette...");
 
     const analyzeRes = await fetch(`/api/analyze/${job_id}`, {
       method: "POST",
@@ -343,6 +335,14 @@ async function startAnalysisWorkflow() {
     }
 
     const timelineData = await analyzeRes.json();
+
+    if (timelineData.ai_style) {
+      const badge = document.getElementById("analysis-style-text");
+      if (badge) {
+        badge.innerText = `AI Decided: ${timelineData.ai_style.style_name} • ${timelineData.ai_style.mood}`;
+      }
+    }
+
     updateAnalysisProgress(100, "Rendering studio timeline...");
     // Clear simulation immediately — do not wait for the transition delay
     clearInterval(analysisSimulationInterval);
@@ -429,6 +429,7 @@ function loadTimelineIntoStudio(data) {
   state.analyzedSegments = data.analyzed_segments || [];
   state.musicConfig = data.music_config || null;
   state.videoDuration = data.video_duration || 60;
+  state.aiStyle = data.ai_style || null;
 
   // Setup video source — use actual filename returned from the upload
   const video = document.getElementById("studio-video");
@@ -436,6 +437,56 @@ function loadTimelineIntoStudio(data) {
   video.src = `/uploads/${state.jobId}/video.${ext}`;
 
   document.getElementById("project-header-title").innerText = `${state.videoFile?.name || "Job " + state.jobId} — AI Sound Design`;
+
+  // Render AI Style Badges & Details
+  if (state.aiStyle) {
+    const pill = document.getElementById("ai-style-pill");
+    const nameBadge = document.getElementById("ai-style-name-badge");
+    if (pill && nameBadge) {
+      pill.classList.remove("hidden");
+      pill.classList.add("flex");
+      nameBadge.innerText = `✨ ${state.aiStyle.style_name}`;
+    }
+
+    // Studio Inspector Card
+    const studioName = document.getElementById("studio-style-name");
+    const studioMood = document.getElementById("studio-style-mood");
+    const studioReason = document.getElementById("studio-style-reasoning");
+    const studioMusic = document.getElementById("studio-music-int");
+    const studioSfx = document.getElementById("studio-sfx-int");
+    const studioPacing = document.getElementById("studio-pacing");
+
+    if (studioName) studioName.innerText = state.aiStyle.style_name;
+    if (studioMood) studioMood.innerText = state.aiStyle.mood;
+    if (studioReason) studioReason.innerText = state.aiStyle.reasoning;
+    if (studioMusic) studioMusic.innerText = Math.round(state.aiStyle.music_intensity * 100) + "%";
+    if (studioSfx) studioSfx.innerText = Math.round(state.aiStyle.sfx_intensity * 100) + "%";
+    if (studioPacing) studioPacing.innerText = state.aiStyle.pacing;
+
+    // Details Modal
+    const modalName = document.getElementById("modal-style-name");
+    const modalMood = document.getElementById("modal-style-mood");
+    const modalTheme = document.getElementById("modal-style-theme");
+    const modalReason = document.getElementById("modal-style-reasoning");
+    const modalMusic = document.getElementById("modal-music-int");
+    const modalSfx = document.getElementById("modal-sfx-int");
+    const modalPacing = document.getElementById("modal-pacing");
+    const paletteContainer = document.getElementById("modal-palette-tags");
+
+    if (modalName) modalName.innerText = state.aiStyle.style_name;
+    if (modalMood) modalMood.innerText = state.aiStyle.mood;
+    if (modalTheme) modalTheme.innerText = state.aiStyle.narrative_theme || "Script Dialogue & Narrative";
+    if (modalReason) modalReason.innerText = state.aiStyle.reasoning;
+    if (modalMusic) modalMusic.innerText = Math.round(state.aiStyle.music_intensity * 100) + "%";
+    if (modalSfx) modalSfx.innerText = Math.round(state.aiStyle.sfx_intensity * 100) + "%";
+    if (modalPacing) modalPacing.innerText = state.aiStyle.pacing;
+
+    if (paletteContainer && state.aiStyle.acoustic_palette) {
+      paletteContainer.innerHTML = state.aiStyle.acoustic_palette.map(
+        tag => `<span class="px-2.5 py-1 rounded-lg bg-surface-container-high border border-outline-variant/20 font-label-mono text-[10px] text-primary font-bold uppercase">#${tag}</span>`
+      ).join("");
+    }
+  }
 
   switchView("studio");
   renderTimeline();
@@ -728,7 +779,7 @@ function onInspectorGainChange(val) {
 function auditionInspectorSound() {
   const ev = state.events.find((x) => x.id === state.selectedEventId);
   if (!ev) return;
-  previewPresetSound(ev.sfx_path);
+  previewSound(ev.sfx_path);
 }
 
 function deleteInspectorClip() {
@@ -791,7 +842,7 @@ function renderSoundLibrary() {
     card.className = "p-3 rounded-xl border border-outline-variant/10 bg-surface-container hover:bg-surface-container-high transition-all flex items-center justify-between gap-3 group";
     card.innerHTML = `
       <div class="flex items-center gap-3 min-w-0 flex-1">
-        <button type="button" onclick="previewPresetSound('${path}', event)" class="w-8 h-8 rounded-full bg-surface-container-lowest text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center flex-shrink-0 transition-all">
+        <button type="button" onclick="previewSound('${path}', event)" class="w-8 h-8 rounded-full bg-surface-container-lowest text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center flex-shrink-0 transition-all">
           <span class="material-symbols-outlined text-[16px]">play_arrow</span>
         </button>
         <div class="min-w-0 flex-1">
@@ -827,7 +878,7 @@ function insertSoundAtPlayhead(path, type, filename) {
   state.events.sort((a, b) => a.timestamp - b.timestamp);
   renderTimeline();
   selectClip(newEv.id);
-  previewPresetSound(path);
+  previewSound(path);
   showToast(`Inserted ${type.toUpperCase()} at ${state.currentTime.toFixed(2)}s`);
 }
 

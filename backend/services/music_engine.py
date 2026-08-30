@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 
-from models.schemas import AnalyzedSegment, MusicConfig, MusicClip, ContentTag, AnalyzeSettings
+from models.schemas import AnalyzedSegment, MusicConfig, MusicClip, ContentTag, AnalyzeSettings, AIStyleProfile
 
 _PROJECT_ROOT = Path(__file__).parent.parent.parent
 _MUSIC_ROOT = _PROJECT_ROOT / "assets" / "music"
@@ -130,9 +130,10 @@ def select_music(
     segments: List[AnalyzedSegment],
     settings: AnalyzeSettings,
     video_duration: float = 60.0,
+    ai_style: Optional[AIStyleProfile] = None,
 ) -> Optional[MusicConfig]:
     """
-    Select recommended background music via script semantic analysis,
+    Select recommended background music via AI script style analysis,
     and place sequential repeated clips along the timeline until video ends.
     """
     if not settings.music_enabled:
@@ -141,16 +142,21 @@ def select_music(
     metadata = _load_metadata()
     full_script = " ".join(s.text for s in segments)
 
-    # Determine dominant mood from segment tags
-    mood_votes: Dict[str, int] = {}
-    for seg in segments:
-        if seg.tag in [ContentTag.GLITCH, ContentTag.QUESTION, ContentTag.DROP]:
-            m = "mysterious"
-        else:
-            m = "dark_documentary"
-        mood_votes[m] = mood_votes.get(m, 0) + 1
+    # Determine dominant mood from AI Style Profile or segment tags
+    if ai_style and ai_style.genre:
+        dominant_mood = ai_style.genre
+    else:
+        mood_votes: Dict[str, int] = {}
+        for seg in segments:
+            if seg.tag in [ContentTag.GLITCH, ContentTag.QUESTION, ContentTag.DROP]:
+                m = "mysterious"
+            else:
+                m = "dark_documentary"
+            mood_votes[m] = mood_votes.get(m, 0) + 1
+        dominant_mood = max(mood_votes, key=lambda k: mood_votes[k]) if mood_votes else "dark_documentary"
 
-    dominant_mood = max(mood_votes, key=lambda k: mood_votes[k]) if mood_votes else "dark_documentary"
+    # Effective intensity from AI style profile if present
+    effective_intensity = ai_style.music_intensity if ai_style else settings.music_intensity
 
     # AI / Keyword scoring of music catalog against script
     scored_candidates = _score_music_candidates(full_script, dominant_mood, metadata)
@@ -169,13 +175,13 @@ def select_music(
                 if files:
                     rel_path = f"assets/music/{folder.name}/{files[0].name}"
                     track_dur = _get_audio_duration(files[0])
-                    volume = round(0.08 + float(settings.music_intensity) * 0.12, 3)
+                    volume = round(0.08 + float(effective_intensity) * 0.12, 3)
                     # Build clips
                     clips = _build_sequential_clips(rel_path, files[0].stem, track_dur, video_duration, volume)
                     return MusicConfig(
                         track_path=rel_path,
                         volume=volume,
-                        mood=folder.name,
+                        mood=ai_style.mood if ai_style else folder.name,
                         track_duration=track_dur,
                         clips=clips,
                     )
@@ -191,7 +197,7 @@ def select_music(
         track_dur = _get_audio_duration(track_path)
     track_dur = round(float(track_dur), 2)
 
-    volume = round(0.08 + float(settings.music_intensity) * 0.12, 3)
+    volume = round(0.08 + float(effective_intensity) * 0.12, 3)
     track_title = chosen_meta.get("id", filename)
     track_title = re.sub(r"^\w+_\d+_", "", track_title)
     track_title = re.sub(r"\.(wav|mp3)$", "", track_title).replace("_", " ")[:24].strip()
@@ -202,7 +208,7 @@ def select_music(
     return MusicConfig(
         track_path=rel_path,
         volume=volume,
-        mood=chosen_meta.get("mood", folder),
+        mood=ai_style.mood if ai_style else chosen_meta.get("mood", folder),
         track_duration=track_dur,
         clips=clips,
     )

@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException, Body
 from models.schemas import AnalyzeSettings, TimelineResult
 from services.srt_parser import parse_srt
 from services.transcriber import transcribe
-from services.analyzer import analyze_segments
+from services.analyzer import analyze_segments, decide_script_style
 from services.sfx_engine import build_sfx_timeline
 from services.music_engine import select_music
 
@@ -120,18 +120,22 @@ async def analyze_video(
     if max_sub_time > video_duration:
         video_duration = max_sub_time + 1.5
 
-    # --- Step 2: AI analysis ---
+    # --- Step 2: AI Autonomous Script Style Decision ---
+    ai_style = await decide_script_style(segments)
+
+    # --- Step 3: AI Tag Analysis ---
     analyzed = await analyze_segments(segments, settings)
 
-    # --- Step 3: SFX timeline ---
-    sfx_events = build_sfx_timeline(analyzed, settings, video_duration)
+    # --- Step 4: SFX timeline ---
+    sfx_events = build_sfx_timeline(analyzed, settings, video_duration, ai_style)
 
-    # --- Step 4: Music selection ---
-    music_config = select_music(analyzed, settings, video_duration)
+    # --- Step 5: Music selection ---
+    music_config = select_music(analyzed, settings, video_duration, ai_style)
     if music_config is None:
         # Provide a safe dummy config
         from models.schemas import MusicConfig
-        music_config = MusicConfig(track_path="", volume=0.12, mood="dark_documentary")
+        vol = round(0.08 + float(ai_style.music_intensity) * 0.12, 3)
+        music_config = MusicConfig(track_path="", volume=vol, mood=ai_style.mood)
 
     result = TimelineResult(
         job_id=job_id,
@@ -140,6 +144,7 @@ async def analyze_video(
         sfx_events=sfx_events,
         music_config=music_config,
         analyzed_segments=analyzed,
+        ai_style=ai_style,
     )
 
     _cache_put(job_id, result)
